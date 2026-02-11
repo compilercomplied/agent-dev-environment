@@ -33,13 +33,13 @@ func NewError(code int, message string) error {
 	return &AppError{Code: code, Message: message}
 }
 
-// HandlerFunc is our "Clean Handler" signature
-type HandlerFunc[Req any, Res any] func(req Req) (*Res, error)
-
 // Validator interface for request structures
 type Validator interface {
 	Validate() error
 }
+
+// HandlerFunc is our "Clean Handler" signature
+type HandlerFunc[Req any, Res any] func(req Req) (*Res, error)
 
 // WrappedHandler converts a Clean Handler into a standard http.HandlerFunc
 func WrappedHandler[Req any, Res any](hf HandlerFunc[Req, Res]) http.HandlerFunc {
@@ -96,3 +96,4 @@ func respondError(w http.ResponseWriter, message string, code int) {
 	w.WriteHeader(code)
 	json.NewEncoder(w).Encode(v1.ErrorResponse{Error: message})
 }
+
