@@ -1,0 +1,3 @@
+encryptionsalt: v1:sZCL6oMbKCQ=:v1:ymwexuRg0+J7Ayca:FuyjIbMyh7MX0B64pgZqPlWVJQHpiQ==
+config:
+  agent-dev-environment:AGENT_DEV_ENVIRONMENT_LOGGING_TYPE: structured

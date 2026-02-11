@@ -1,0 +1,3 @@
+encryptionsalt: v1:HbyVj8ThSsE=:v1:05TqglqrZxQyJwBc:hogrz66UWtI4rDmoZM/nrWSuqwSJVQ==
+config:
+  agent-dev-environment:AGENT_DEV_ENVIRONMENT_LOGGING_TYPE: plain
