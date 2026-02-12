@@ -3,6 +3,7 @@ package main
 import (
 	"agent-dev-environment/src/internal/middleware"
 	"agent-dev-environment/src/features/filesystem/create_file"
+	"agent-dev-environment/src/features/filesystem/delete"
 	"agent-dev-environment/src/features/filesystem/read"
 	"agent-dev-environment/src/library/api"
 	"agent-dev-environment/src/library/config"
@@ -18,6 +19,7 @@ func main() {
 	mux.HandleFunc("GET /health", healthHandler)
 	mux.HandleFunc("POST /api/v1/filesystem/read", api.WrappedHandler(read.Handler))
 	mux.HandleFunc("POST /api/v1/filesystem/create_file", api.WrappedHandler(create_file.Handler))
+	mux.HandleFunc("DELETE /api/v1/filesystem/delete", api.WrappedHandler(delete.Handler))
 
 	handler := middleware.PanicRecovery(mux)
 
