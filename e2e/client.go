@@ -47,7 +47,7 @@ func (c *Client) ReadFile(req read_models.Request) (*read_models.Response, error
 }
 
 func (c *Client) DeleteFile(req delete_models.Request) (*v1.EmptyResponse, error) {
-	return call[delete_models.Request, v1.EmptyResponse](c, "DELETE", "/api/v1/filesystem/delete", req)
+	return call[delete_models.Request, v1.EmptyResponse](c, "POST", "/api/v1/filesystem/delete", req)
 }
 
 func call[Req any, Res any](c *Client, method, path string, payload Req) (*Res, error) {
