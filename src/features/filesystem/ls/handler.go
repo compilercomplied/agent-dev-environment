@@ -101,7 +101,7 @@ func parseLinuxLSOutput(output string, basePath string, recursive bool, long boo
 
 		if long {
 			// Parse ls -l format
-			entry, err := parseLongFormatLine(line, currentDir)
+			entry, err := parseLongFormatLine(line, currentDir, recursive)
 			if err != nil {
 				// Skip lines that can't be parsed
 				continue
@@ -122,8 +122,14 @@ func parseLinuxLSOutput(output string, basePath string, recursive bool, long boo
 				continue
 			}
 
+			// In recursive mode, use complete path; otherwise use just the filename
+			displayName := name
+			if recursive {
+				displayName = fullPath
+			}
+
 			entry = ls.FileInfo{
-				Name:        name,
+				Name:        displayName,
 				IsDirectory: info.IsDir(),
 				Size:        info.Size(),
 			}
@@ -134,7 +140,7 @@ func parseLinuxLSOutput(output string, basePath string, recursive bool, long boo
 	return entries, nil
 }
 
-func parseLongFormatLine(line string, currentDir string) (ls.FileInfo, error) {
+func parseLongFormatLine(line string, currentDir string, recursive bool) (ls.FileInfo, error) {
 	// ls -l output format:
 	// -rw-r--r-- 1 user group 1234 Jan 02 15:04 filename
 	// drwxr-xr-x 2 user group 4096 Jan 02 15:04 dirname
@@ -168,8 +174,14 @@ func parseLongFormatLine(line string, currentDir string) (ls.FileInfo, error) {
 	// Determine if directory
 	isDir := strings.HasPrefix(permissions, "d")
 
+	// In recursive mode, use complete path; otherwise use just the filename
+	displayName := name
+	if recursive {
+		displayName = filepath.Join(currentDir, name)
+	}
+
 	return ls.FileInfo{
-		Name:        name,
+		Name:        displayName,
 		IsDirectory: isDir,
 		Size:        size,
 		Mode:        permissions,
