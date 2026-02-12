@@ -11,7 +11,7 @@ import (
 func TestReadFile_Success(t *testing.T) {
 	// ------------------------------------ Arrange ------------------------------------
 	client := NewClient()
-	filePath := "/tmp/e2e_read_file_success.txt"
+	filePath := TestDir + "/read_file_success.txt"
 	content := "some content to read"
 
 	// Create file via API
@@ -46,7 +46,7 @@ func TestReadFile_NotFound(t *testing.T) {
 	// ------------------------------------ Arrange ------------------------------------
 	client := NewClient()
 	req := read_models.Request{
-		Path: "/tmp/this-file-really-should-not-exist-12345.txt",
+		Path: TestDir + "/this-file-really-should-not-exist-12345.txt",
 	}
 
 	// -------------------------------------- Act --------------------------------------
