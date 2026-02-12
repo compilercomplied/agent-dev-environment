@@ -10,6 +10,7 @@ import (
 	"agent-dev-environment/src/api/v1"
 	create_models "agent-dev-environment/src/api/v1/filesystem/create_file"
 	delete_models "agent-dev-environment/src/api/v1/filesystem/delete"
+	move_models "agent-dev-environment/src/api/v1/filesystem/move"
 	read_models "agent-dev-environment/src/api/v1/filesystem/read"
 )
 
@@ -48,6 +49,10 @@ func (c *Client) ReadFile(req read_models.Request) (*read_models.Response, error
 
 func (c *Client) DeleteFile(req delete_models.Request) (*v1.EmptyResponse, error) {
 	return call[delete_models.Request, v1.EmptyResponse](c, "POST", "/api/v1/filesystem/delete", req)
+}
+
+func (c *Client) MoveFile(req move_models.Request) (*v1.EmptyResponse, error) {
+	return call[move_models.Request, v1.EmptyResponse](c, "POST", "/api/v1/filesystem/move", req)
 }
 
 func call[Req any, Res any](c *Client, method, path string, payload Req) (*Res, error) {
