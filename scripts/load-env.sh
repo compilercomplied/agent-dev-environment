@@ -19,8 +19,18 @@ if [ -z "$PULUMI_CONFIG_PASSPHRASE" ]; then
     return 1
 fi
 
-# Ensure Pulumi is initialized for local development
-pulumi login --local
+# Ensure Pulumi is logged in without overriding existing sessions
+if ! pulumi whoami &> /dev/null; then
+    if [ -n "$PULUMI_ACCESS_TOKEN" ]; then
+        echo "Logging in to Pulumi Cloud..."
+        pulumi login
+    else
+        echo "No Pulumi session found. Falling back to local backend..."
+        pulumi login --local
+    fi
+fi
+
+# Ensure the local stack exists
 pulumi stack select --create local -C iac
 
 echo "Loading local configuration from Pulumi..."
