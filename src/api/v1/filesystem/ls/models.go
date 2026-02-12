@@ -2,7 +2,6 @@ package ls
 
 import (
 	"agent-dev-environment/src/library/api"
-	"time"
 )
 
 type Request struct {
@@ -18,14 +17,6 @@ func (r Request) Validate() error {
 	return nil
 }
 
-type FileInfo struct {
-	Name        string    `json:"name"`
-	IsDirectory bool      `json:"is_directory"`
-	Size        int64     `json:"size"`
-	Mode        string    `json:"mode,omitempty"`
-	ModTime     time.Time `json:"mod_time,omitempty"`
-}
-
 type Response struct {
-	Entries []FileInfo `json:"entries"`
+	CommandOutput string `json:"command output"`
 }

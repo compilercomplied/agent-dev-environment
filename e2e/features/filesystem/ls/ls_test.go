@@ -2,6 +2,7 @@ package ls
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"agent-dev-environment/e2e"
@@ -44,17 +45,16 @@ func TestListFiles_BasicDirectory(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	if len(resp.Entries) != 3 {
-		t.Fatalf("expected 3 entries, got %d", len(resp.Entries))
+	output := resp.CommandOutput
+	if output == "" {
+		t.Fatal("expected command output to be non-empty")
 	}
 
+	// Verify all files are in the output
 	expectedFiles := []string{"file1.txt", "file2.txt", "file3.txt"}
-	for i, entry := range resp.Entries {
-		if entry.Name != expectedFiles[i] {
-			t.Errorf("expected file %s, got %s", expectedFiles[i], entry.Name)
-		}
-		if entry.IsDirectory {
-			t.Errorf("expected file %s to not be a directory", entry.Name)
+	for _, file := range expectedFiles {
+		if !strings.Contains(output, file) {
+			t.Errorf("expected output to contain %s, got: %s", file, output)
 		}
 	}
 }
@@ -85,22 +85,27 @@ func TestListFiles_WithLongFormat(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	if len(resp.Entries) != 1 {
-		t.Fatalf("expected 1 entry, got %d", len(resp.Entries))
+	output := resp.CommandOutput
+	if output == "" {
+		t.Fatal("expected command output to be non-empty")
 	}
 
-	entry := resp.Entries[0]
-	if entry.Name != "file.txt" {
-		t.Errorf("expected file name 'file.txt', got %s", entry.Name)
+	// Long format should contain file permissions
+	if !strings.Contains(output, "file.txt") {
+		t.Errorf("expected output to contain 'file.txt', got: %s", output)
 	}
-	if entry.Size != 12 {
-		t.Errorf("expected size 12, got %d", entry.Size)
+
+	// Long format should have permission info (starting with - or d)
+	lines := strings.Split(strings.TrimSpace(output), "\n")
+	foundFileInfo := false
+	for _, line := range lines {
+		if strings.Contains(line, "file.txt") && (strings.HasPrefix(line, "-") || strings.HasPrefix(line, "d")) {
+			foundFileInfo = true
+			break
+		}
 	}
-	if entry.Mode == "" {
-		t.Error("expected mode to be set in long format")
-	}
-	if entry.ModTime.IsZero() {
-		t.Error("expected mod_time to be set in long format")
+	if !foundFileInfo {
+		t.Errorf("expected long format output with permissions, got: %s", output)
 	}
 }
 
@@ -130,19 +135,14 @@ func TestListFiles_WithoutLongFormat(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	if len(resp.Entries) != 1 {
-		t.Fatalf("expected 1 entry, got %d", len(resp.Entries))
+	output := resp.CommandOutput
+	if output == "" {
+		t.Fatal("expected command output to be non-empty")
 	}
 
-	entry := resp.Entries[0]
-	if entry.Size != 12 {
-		t.Errorf("expected size 12 to always be present, got %d", entry.Size)
-	}
-	if entry.Mode != "" {
-		t.Error("expected mode to be empty without long format")
-	}
-	if !entry.ModTime.IsZero() {
-		t.Error("expected mod_time to be zero without long format")
+	// Should contain file name
+	if !strings.Contains(output, "file.txt") {
+		t.Errorf("expected output to contain 'file.txt', got: %s", output)
 	}
 }
 
@@ -180,24 +180,16 @@ func TestListFiles_Recursive(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	if len(resp.Entries) < 3 {
-		t.Fatalf("expected at least 3 file entries, got %d", len(resp.Entries))
+	output := resp.CommandOutput
+	if output == "" {
+		t.Fatal("expected command output to be non-empty")
 	}
 
-	pathsFound := make(map[string]bool)
-	for _, entry := range resp.Entries {
-		pathsFound[entry.Name] = true
-	}
-
-	// In recursive mode, complete paths are returned
-	expectedPaths := []string{
-		filepath.Join(testDir, "file1.txt"),
-		filepath.Join(testDir, "subdir", "file2.txt"),
-		filepath.Join(testDir, "subdir", "nested", "file3.txt"),
-	}
-	for _, expectedPath := range expectedPaths {
-		if !pathsFound[expectedPath] {
-			t.Errorf("expected to find complete path %s in recursive listing", expectedPath)
+	// All files should be present in recursive output
+	expectedFiles := []string{"file1.txt", "file2.txt", "file3.txt"}
+	for _, file := range expectedFiles {
+		if !strings.Contains(output, file) {
+			t.Errorf("expected recursive output to contain %s, got: %s", file, output)
 		}
 	}
 }
@@ -232,23 +224,22 @@ func TestListFiles_NonRecursive(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	if len(resp.Entries) != 2 {
-		t.Fatalf("expected 2 entries (1 file, 1 directory), got %d", len(resp.Entries))
+	output := resp.CommandOutput
+	if output == "" {
+		t.Fatal("expected command output to be non-empty")
 	}
 
-	fileNames := make(map[string]bool)
-	for _, entry := range resp.Entries {
-		fileNames[entry.Name] = true
-		if entry.Name == "file2.txt" {
-			t.Errorf("file2.txt should not be in non-recursive listing of parent directory")
-		}
+	// Should contain file1.txt and subdir
+	if !strings.Contains(output, "file1.txt") {
+		t.Errorf("expected output to contain 'file1.txt', got: %s", output)
+	}
+	if !strings.Contains(output, "subdir") {
+		t.Errorf("expected output to contain 'subdir', got: %s", output)
 	}
 
-	if !fileNames["file1.txt"] {
-		t.Error("expected to find file1.txt in non-recursive listing")
-	}
-	if !fileNames["subdir"] {
-		t.Error("expected to find subdir in non-recursive listing")
+	// Should NOT contain file2.txt (it's in subdir)
+	if strings.Contains(output, "file2.txt") {
+		t.Errorf("expected non-recursive output NOT to contain 'file2.txt', got: %s", output)
 	}
 }
 
@@ -303,16 +294,14 @@ func TestListFiles_SingleFile(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	if len(resp.Entries) != 1 {
-		t.Fatalf("expected 1 entry, got %d", len(resp.Entries))
+	output := resp.CommandOutput
+	if output == "" {
+		t.Fatal("expected command output to be non-empty")
 	}
 
-	entry := resp.Entries[0]
-	if entry.Name != "test_ls_single_file.txt" {
-		t.Errorf("expected file name 'test_ls_single_file.txt', got %s", entry.Name)
-	}
-	if entry.IsDirectory {
-		t.Error("expected entry to not be a directory")
+	// When listing a single file, ls returns the file path
+	if !strings.Contains(output, testFile) {
+		t.Errorf("expected output to contain the file path, got: %s", output)
 	}
 }
 
@@ -346,14 +335,16 @@ func TestListFiles_EmptyDirectory(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	if len(resp.Entries) != 0 {
-		t.Fatalf("expected 0 entries in empty directory, got %d", len(resp.Entries))
+	// Empty directory output should be empty or just whitespace
+	output := strings.TrimSpace(resp.CommandOutput)
+	if output != "" {
+		t.Fatalf("expected empty output for empty directory, got: %s", output)
 	}
 }
 
-func TestListFiles_IncludesDirectories(t *testing.T) {
+func TestListFiles_CommandOutputField(t *testing.T) {
 	client := e2e.NewClient()
-	testDir := filepath.Join(e2e.TestDir, "test_ls_with_dirs")
+	testDir := filepath.Join(e2e.TestDir, "test_ls_output_field")
 
 	defer func() {
 		client.DeleteFile(delete_models.Request{
@@ -363,17 +354,9 @@ func TestListFiles_IncludesDirectories(t *testing.T) {
 	}()
 
 	client.CreateFile(create_models.Request{
-		Path:    filepath.Join(testDir, "file.txt"),
+		Path:    filepath.Join(testDir, "test.txt"),
 		Content: "content",
 	})
-	client.CreateFile(create_models.Request{
-		Path:    filepath.Join(testDir, "subdir1", ".placeholder"),
-		Content: "",
-	})
-	client.CreateFile(create_models.Request{
-		Path:    filepath.Join(testDir, "subdir2", ".placeholder"),
-		Content: "",
-	})
 
 	resp, err := client.ListFiles(ls_models.Request{
 		Path:      testDir,
@@ -385,182 +368,13 @@ func TestListFiles_IncludesDirectories(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	var fileCount, dirCount int
-	for _, entry := range resp.Entries {
-		if entry.IsDirectory {
-			dirCount++
-		} else {
-			fileCount++
-		}
+	// Verify that the response has the CommandOutput field with raw ls output
+	if resp.CommandOutput == "" {
+		t.Error("expected CommandOutput field to be populated with ls command output")
 	}
 
-	if fileCount != 1 {
-		t.Errorf("expected 1 file, got %d", fileCount)
-	}
-	if dirCount != 2 {
-		t.Errorf("expected 2 directories, got %d", dirCount)
-	}
-}
-
-func TestListFiles_SizeAlwaysPresent(t *testing.T) {
-	client := e2e.NewClient()
-	testDir := filepath.Join(e2e.TestDir, "test_ls_size")
-
-	client.DeleteFile(delete_models.Request{
-		Path:      testDir,
-		Recursive: true,
-	})
-
-	defer func() {
-		client.DeleteFile(delete_models.Request{
-			Path:      testDir,
-			Recursive: true,
-		})
-	}()
-
-	client.CreateFile(create_models.Request{
-		Path:    filepath.Join(testDir, "small.txt"),
-		Content: "a",
-	})
-	client.CreateFile(create_models.Request{
-		Path:    filepath.Join(testDir, "large.txt"),
-		Content: "this is a larger file with more content",
-	})
-
-	resp, err := client.ListFiles(ls_models.Request{
-		Path:      testDir,
-		Recursive: false,
-		Long:      false,
-	})
-
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
-
-	for _, entry := range resp.Entries {
-		if entry.Name == "small.txt" && entry.Size != 1 {
-			t.Errorf("expected small.txt size to be 1, got %d", entry.Size)
-		}
-		if entry.Name == "large.txt" && entry.Size != 39 {
-			t.Errorf("expected large.txt size to be 39, got %d", entry.Size)
-		}
-	}
-}
-
-func TestListFiles_RecursiveReturnsCompletePaths(t *testing.T) {
-	client := e2e.NewClient()
-	testDir := filepath.Join(e2e.TestDir, "test_ls_recursive_paths")
-
-	defer func() {
-		client.DeleteFile(delete_models.Request{
-			Path:      testDir,
-			Recursive: true,
-		})
-	}()
-
-	client.CreateFile(create_models.Request{
-		Path:    filepath.Join(testDir, "file1.txt"),
-		Content: "content1",
-	})
-	client.CreateFile(create_models.Request{
-		Path:    filepath.Join(testDir, "subdir", "file2.txt"),
-		Content: "content2",
-	})
-	client.CreateFile(create_models.Request{
-		Path:    filepath.Join(testDir, "subdir", "nested", "file3.txt"),
-		Content: "content3",
-	})
-
-	resp, err := client.ListFiles(ls_models.Request{
-		Path:      testDir,
-		Recursive: true,
-		Long:      false,
-	})
-
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
-
-	// Map to verify complete paths are returned
-	pathsFound := make(map[string]bool)
-	for _, entry := range resp.Entries {
-		pathsFound[entry.Name] = true
-	}
-
-	// Verify that complete paths are returned, not just filenames
-	expectedPaths := []string{
-		filepath.Join(testDir, "file1.txt"),
-		filepath.Join(testDir, "subdir", "file2.txt"),
-		filepath.Join(testDir, "subdir", "nested", "file3.txt"),
-	}
-
-	for _, expectedPath := range expectedPaths {
-		if !pathsFound[expectedPath] {
-			t.Errorf("expected to find complete path %s in recursive listing", expectedPath)
-		}
-	}
-
-	// Verify that simple filenames are NOT returned (only complete paths)
-	unexpectedFilenames := []string{"file1.txt", "file2.txt", "file3.txt"}
-	for _, filename := range unexpectedFilenames {
-		if pathsFound[filename] {
-			t.Errorf("expected NOT to find simple filename %s in recursive listing (should be complete path)", filename)
-		}
-	}
-}
-
-func TestListFiles_RecursiveWithLongFormatReturnsCompletePaths(t *testing.T) {
-	client := e2e.NewClient()
-	testDir := filepath.Join(e2e.TestDir, "test_ls_recursive_long_paths")
-
-	defer func() {
-		client.DeleteFile(delete_models.Request{
-			Path:      testDir,
-			Recursive: true,
-		})
-	}()
-
-	client.CreateFile(create_models.Request{
-		Path:    filepath.Join(testDir, "file1.txt"),
-		Content: "content1",
-	})
-	client.CreateFile(create_models.Request{
-		Path:    filepath.Join(testDir, "subdir", "file2.txt"),
-		Content: "content2",
-	})
-
-	resp, err := client.ListFiles(ls_models.Request{
-		Path:      testDir,
-		Recursive: true,
-		Long:      true,
-	})
-
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
-
-	// Map to verify complete paths are returned
-	pathsFound := make(map[string]bool)
-	for _, entry := range resp.Entries {
-		pathsFound[entry.Name] = true
-		// Also verify that Mode and ModTime are set with long format
-		if entry.Mode == "" {
-			t.Errorf("expected mode to be set for entry %s in long format", entry.Name)
-		}
-		if entry.ModTime.IsZero() {
-			t.Errorf("expected mod_time to be set for entry %s in long format", entry.Name)
-		}
-	}
-
-	// Verify that complete paths are returned with long format too
-	expectedPaths := []string{
-		filepath.Join(testDir, "file1.txt"),
-		filepath.Join(testDir, "subdir", "file2.txt"),
-	}
-
-	for _, expectedPath := range expectedPaths {
-		if !pathsFound[expectedPath] {
-			t.Errorf("expected to find complete path %s in recursive long listing", expectedPath)
-		}
+	// The output should be a raw string from the ls command
+	if !strings.Contains(resp.CommandOutput, "test.txt") {
+		t.Errorf("expected CommandOutput to contain raw ls output with 'test.txt', got: %s", resp.CommandOutput)
 	}
 }
