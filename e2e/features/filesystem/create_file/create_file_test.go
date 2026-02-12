@@ -11,7 +11,7 @@ import (
 func TestCreateFile_Success(t *testing.T) {
 	// ------------------------------------ Arrange ------------------------------------
 	client := NewClient()
-	filePath := "/tmp/e2e_create_file_success.txt"
+	filePath := TestDir + "/create_file_success.txt"
 	content := "hello"
 	req := create_models.Request{
 		Path:    filePath,
@@ -40,7 +40,7 @@ func TestCreateFile_Success(t *testing.T) {
 func TestCreateFile_Conflict(t *testing.T) {
 	// ------------------------------------ Arrange ------------------------------------
 	client := NewClient()
-	filePath := "/tmp/e2e_create_file_conflict.txt"
+	filePath := TestDir + "/create_file_conflict.txt"
 	req := create_models.Request{
 		Path:    filePath,
 		Content: "already here",

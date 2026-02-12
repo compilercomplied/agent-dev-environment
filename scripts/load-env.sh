@@ -19,11 +19,26 @@ if [ -z "$PULUMI_CONFIG_PASSPHRASE" ]; then
     return 1
 fi
 
+# Ensure Pulumi is logged in without overriding existing sessions
+if ! pulumi whoami &> /dev/null; then
+    if [ -n "$PULUMI_ACCESS_TOKEN" ]; then
+        echo "Logging in to Pulumi Cloud..."
+        pulumi login
+    else
+        echo "No Pulumi session found. Falling back to local backend..."
+        pulumi login --local
+    fi
+fi
+
+# Ensure the local stack exists
+pulumi stack select --create local -C iac
+
 echo "Loading local configuration from Pulumi..."
 
 # Extract configuration from Pulumi and export it
 # Handles both simple values and secret objects
-pulumi config --stack local -C iac --show-secrets --json | \
+set -o pipefail
+if ! pulumi config --stack local -C iac --show-secrets --json | \
 jq -r --arg q "'" '
     to_entries | .[] | 
     (.key | split(":") | last) + "=" + $q + 
@@ -33,12 +48,11 @@ jq -r --arg q "'" '
         else .value 
         end | tostring
     ) + $q
-' > .env
-
-if [ $? -ne 0 ]; then
+' > .env; then
     echo "Error: Failed to extract configuration from Pulumi."
     return 1
 fi
+set +o pipefail
 
 # Load the .env file into the current shell
 set -a
