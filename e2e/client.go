@@ -14,6 +14,7 @@ import (
 	mkdir_models "agent-dev-environment/src/api/v1/filesystem/mkdir"
 	move_models "agent-dev-environment/src/api/v1/filesystem/move"
 	read_models "agent-dev-environment/src/api/v1/filesystem/read"
+	search_models "agent-dev-environment/src/api/v1/filesystem/search"
 )
 
 type Client struct {
@@ -63,6 +64,10 @@ func (c *Client) MoveFile(req move_models.Request) (*v1.EmptyResponse, error) {
 
 func (c *Client) ListFiles(req ls_models.Request) (*v1.CommandResponse, error) {
 	return call[ls_models.Request, v1.CommandResponse](c, "POST", "/api/v1/filesystem/ls", req)
+}
+
+func (c *Client) Search(req search_models.Request) (*v1.CommandResponse, error) {
+	return call[search_models.Request, v1.CommandResponse](c, "POST", "/api/v1/filesystem/search", req)
 }
 
 func call[Req any, Res any](c *Client, method, path string, payload Req) (*Res, error) {
