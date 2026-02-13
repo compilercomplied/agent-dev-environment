@@ -4,6 +4,7 @@ import (
 	"agent-dev-environment/src/internal/middleware"
 	"agent-dev-environment/src/features/filesystem/create_file"
 	"agent-dev-environment/src/features/filesystem/delete"
+	"agent-dev-environment/src/features/filesystem/ls"
 	"agent-dev-environment/src/features/filesystem/mkdir"
 	"agent-dev-environment/src/features/filesystem/move"
 	"agent-dev-environment/src/features/filesystem/read"
@@ -24,6 +25,7 @@ func main() {
 	mux.HandleFunc("POST /api/v1/filesystem/mkdir", api.WrappedHandler(mkdir.Handler))
 	mux.HandleFunc("POST /api/v1/filesystem/delete", api.WrappedHandler(delete.Handler))
 	mux.HandleFunc("POST /api/v1/filesystem/move", api.WrappedHandler(move.Handler))
+	mux.HandleFunc("POST /api/v1/filesystem/ls", api.WrappedHandler(ls.Handler))
 
 	handler := middleware.PanicRecovery(mux)
 

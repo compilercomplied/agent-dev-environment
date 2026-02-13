@@ -5,3 +5,7 @@ type ErrorResponse struct {
 }
 
 type EmptyResponse struct{}
+
+type CommandResponse struct {
+	CommandOutput string `json:"command_output"`
+}
