@@ -8,6 +8,7 @@ import (
 	"agent-dev-environment/src/features/filesystem/mkdir"
 	"agent-dev-environment/src/features/filesystem/move"
 	"agent-dev-environment/src/features/filesystem/read"
+	"agent-dev-environment/src/features/filesystem/replace"
 	"agent-dev-environment/src/features/filesystem/search"
 	"agent-dev-environment/src/library/api"
 	"agent-dev-environment/src/library/config"
@@ -28,6 +29,7 @@ func main() {
 	mux.HandleFunc("POST /api/v1/filesystem/move", api.WrappedHandler(move.Handler))
 	mux.HandleFunc("POST /api/v1/filesystem/ls", api.WrappedHandler(ls.Handler))
 	mux.HandleFunc("POST /api/v1/filesystem/search", api.WrappedHandler(search.Handler))
+	mux.HandleFunc("POST /api/v1/filesystem/replace", api.WrappedHandler(replace.Handler))
 
 	handler := middleware.PanicRecovery(mux)
 
