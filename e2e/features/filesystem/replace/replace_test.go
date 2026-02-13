@@ -126,6 +126,33 @@ func TestReplace_FuzzyMatch_Failure(t *testing.T) {
 	AssertError(t, err, http.StatusBadRequest, "Could not find a match with at least 98% similarity")
 }
 
+func TestReplace_Ambiguous_Failure(t *testing.T) {
+	// ------------------------------------ Arrange ------------------------------------
+	client := NewClient()
+	filePath := TestDir + "/replace_ambiguous_failure.txt"
+	initialContent := "Duplicate line.\nKeep this.\nDuplicate line."
+	
+	_, err := client.CreateFile(create_models.Request{
+		Path:    filePath,
+		Content: initialContent,
+	})
+	if err != nil {
+		t.Fatalf("Failed to setup test file: %v", err)
+	}
+
+	req := replace_models.Request{
+		Path:      filePath,
+		OldString: "Duplicate line.",
+		NewString: "Changed line.",
+	}
+
+	// -------------------------------------- Act --------------------------------------
+	_, err = client.Replace(req)
+
+	// ------------------------------------ Assert -------------------------------------
+	AssertError(t, err, http.StatusBadRequest, "Ambiguous replacement: multiple exact matches found. Please provide more context.")
+}
+
 func TestReplace_NotFound(t *testing.T) {
 	// ------------------------------------ Arrange ------------------------------------
 	client := NewClient()
