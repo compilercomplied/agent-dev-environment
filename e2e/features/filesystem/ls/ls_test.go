@@ -12,6 +12,7 @@ import (
 )
 
 func TestListFiles_BasicDirectory(t *testing.T) {
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 	testDir := filepath.Join(e2e.TestDir, "test_ls_basic")
 
@@ -35,12 +36,14 @@ func TestListFiles_BasicDirectory(t *testing.T) {
 		Content: "content3",
 	})
 
+	// -------------------------------------- Act --------------------------------------
 	resp, err := client.ListFiles(ls_models.Request{
 		Path:      testDir,
 		Recursive: false,
 		Long:      false,
 	})
 
+	// ------------------------------------ Assert -------------------------------------
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -53,6 +56,7 @@ func TestListFiles_BasicDirectory(t *testing.T) {
 }
 
 func TestListFiles_WithLongFormat(t *testing.T) {
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 	testDir := filepath.Join(e2e.TestDir, "test_ls_long")
 
@@ -68,12 +72,14 @@ func TestListFiles_WithLongFormat(t *testing.T) {
 		Content: "test content",
 	})
 
+	// -------------------------------------- Act --------------------------------------
 	resp, err := client.ListFiles(ls_models.Request{
 		Path:      testDir,
 		Recursive: false,
 		Long:      true,
 	})
 
+	// ------------------------------------ Assert -------------------------------------
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -103,6 +109,7 @@ func TestListFiles_WithLongFormat(t *testing.T) {
 }
 
 func TestListFiles_WithoutLongFormat(t *testing.T) {
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 	testDir := filepath.Join(e2e.TestDir, "test_ls_no_long")
 
@@ -118,12 +125,14 @@ func TestListFiles_WithoutLongFormat(t *testing.T) {
 		Content: "test content",
 	})
 
+	// -------------------------------------- Act --------------------------------------
 	resp, err := client.ListFiles(ls_models.Request{
 		Path:      testDir,
 		Recursive: false,
 		Long:      false,
 	})
 
+	// ------------------------------------ Assert -------------------------------------
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -140,6 +149,7 @@ func TestListFiles_WithoutLongFormat(t *testing.T) {
 }
 
 func TestListFiles_Recursive(t *testing.T) {
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 	testDir := filepath.Join(e2e.TestDir, "test_ls_recursive")
 
@@ -163,12 +173,14 @@ func TestListFiles_Recursive(t *testing.T) {
 		Content: "content3",
 	})
 
+	// -------------------------------------- Act --------------------------------------
 	resp, err := client.ListFiles(ls_models.Request{
 		Path:      testDir,
 		Recursive: true,
 		Long:      false,
 	})
 
+	// ------------------------------------ Assert -------------------------------------
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -188,6 +200,7 @@ func TestListFiles_Recursive(t *testing.T) {
 }
 
 func TestListFiles_NonRecursive(t *testing.T) {
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 	testDir := filepath.Join(e2e.TestDir, "test_ls_non_recursive")
 
@@ -207,12 +220,14 @@ func TestListFiles_NonRecursive(t *testing.T) {
 		Content: "content2",
 	})
 
+	// -------------------------------------- Act --------------------------------------
 	resp, err := client.ListFiles(ls_models.Request{
 		Path:      testDir,
 		Recursive: false,
 		Long:      false,
 	})
 
+	// ------------------------------------ Assert -------------------------------------
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -237,31 +252,38 @@ func TestListFiles_NonRecursive(t *testing.T) {
 }
 
 func TestListFiles_PathNotFound(t *testing.T) {
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 	testPath := filepath.Join(e2e.TestDir, "nonexistent_dir")
 
+	// -------------------------------------- Act --------------------------------------
 	_, err := client.ListFiles(ls_models.Request{
 		Path:      testPath,
 		Recursive: false,
 		Long:      false,
 	})
 
+	// ------------------------------------ Assert -------------------------------------
 	e2e.AssertError(t, err, 404, "Path not found")
 }
 
 func TestListFiles_EmptyPath(t *testing.T) {
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 
+	// -------------------------------------- Act --------------------------------------
 	_, err := client.ListFiles(ls_models.Request{
 		Path:      "",
 		Recursive: false,
 		Long:      false,
 	})
 
+	// ------------------------------------ Assert -------------------------------------
 	e2e.AssertError(t, err, 400, "Path is required")
 }
 
 func TestListFiles_SingleFile(t *testing.T) {
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 	testFile := filepath.Join(e2e.TestDir, "test_ls_single_file.txt")
 
@@ -277,12 +299,14 @@ func TestListFiles_SingleFile(t *testing.T) {
 		Content: "test content",
 	})
 
+	// -------------------------------------- Act --------------------------------------
 	resp, err := client.ListFiles(ls_models.Request{
 		Path:      testFile,
 		Recursive: false,
 		Long:      false,
 	})
 
+	// ------------------------------------ Assert -------------------------------------
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -299,6 +323,7 @@ func TestListFiles_SingleFile(t *testing.T) {
 }
 
 func TestListFiles_EmptyDirectory(t *testing.T) {
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 	testDir := filepath.Join(e2e.TestDir, "test_ls_empty_dir")
 
@@ -318,12 +343,14 @@ func TestListFiles_EmptyDirectory(t *testing.T) {
 		Recursive: false,
 	})
 
+	// -------------------------------------- Act --------------------------------------
 	resp, err := client.ListFiles(ls_models.Request{
 		Path:      testDir,
 		Recursive: false,
 		Long:      false,
 	})
 
+	// ------------------------------------ Assert -------------------------------------
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -336,6 +363,7 @@ func TestListFiles_EmptyDirectory(t *testing.T) {
 }
 
 func TestListFiles_CommandOutputField(t *testing.T) {
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 	testDir := filepath.Join(e2e.TestDir, "test_ls_output_field")
 
@@ -351,12 +379,14 @@ func TestListFiles_CommandOutputField(t *testing.T) {
 		Content: "content",
 	})
 
+	// -------------------------------------- Act --------------------------------------
 	resp, err := client.ListFiles(ls_models.Request{
 		Path:      testDir,
 		Recursive: false,
 		Long:      false,
 	})
 
+	// ------------------------------------ Assert -------------------------------------
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}

@@ -12,6 +12,7 @@ import (
 )
 
 func TestSearch_Basic(t *testing.T) {
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 	testDir := filepath.Join(e2e.TestDir, "test_search_basic")
 
@@ -35,11 +36,13 @@ No match here
 `,
 	})
 
+	// -------------------------------------- Act --------------------------------------
 	resp, err := client.Search(search_models.Request{
 		Path:    testDir,
 		Pattern: "Hello",
 	})
 
+	// ------------------------------------ Assert -------------------------------------
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -52,6 +55,7 @@ No match here
 }
 
 func TestSearch_IgnoreCase(t *testing.T) {
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 	testDir := filepath.Join(e2e.TestDir, "test_search_ignore_case")
 
@@ -67,11 +71,14 @@ func TestSearch_IgnoreCase(t *testing.T) {
 		Content: "Hello World\n",
 	})
 
+	// -------------------------------------- Act --------------------------------------
 	// Case-sensitive search (default)
 	resp, err := client.Search(search_models.Request{
 		Path:    testDir,
 		Pattern: "hello",
 	})
+	
+	// ------------------------------------ Assert -------------------------------------
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -79,12 +86,15 @@ func TestSearch_IgnoreCase(t *testing.T) {
 		t.Errorf("expected empty output for case-sensitive mismatch, got %q", resp.CommandOutput)
 	}
 
+	// -------------------------------------- Act --------------------------------------
 	// Case-insensitive search
 	resp, err = client.Search(search_models.Request{
 		Path:       testDir,
 		Pattern:    "hello",
 		IgnoreCase: true,
 	})
+	
+	// ------------------------------------ Assert -------------------------------------
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -96,6 +106,7 @@ func TestSearch_IgnoreCase(t *testing.T) {
 }
 
 func TestSearch_FilesWithMatches(t *testing.T) {
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 	testDir := filepath.Join(e2e.TestDir, "test_search_files_with_matches")
 
@@ -115,12 +126,14 @@ func TestSearch_FilesWithMatches(t *testing.T) {
 		Content: "Nothing here\n",
 	})
 
+	// -------------------------------------- Act --------------------------------------
 	resp, err := client.Search(search_models.Request{
 		Path:             testDir,
 		Pattern:          "Target",
 		FilesWithMatches: true,
 	})
 
+	// ------------------------------------ Assert -------------------------------------
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}

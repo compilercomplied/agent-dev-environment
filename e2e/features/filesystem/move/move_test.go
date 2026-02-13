@@ -12,7 +12,7 @@ import (
 )
 
 func TestMoveFile_Success(t *testing.T) {
-	// ---- Arrange ----
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 	sourcePath := e2e.TestDir + "/test_move_source.txt"
 	destPath := e2e.TestDir + "/test_move_dest.txt"
@@ -33,10 +33,10 @@ func TestMoveFile_Success(t *testing.T) {
 		Destination: destPath,
 	}
 
-	// ---- Act ----
+	// -------------------------------------- Act --------------------------------------
 	_, err = client.MoveFile(req)
 
-	// ---- Assert ----
+	// ------------------------------------ Assert -------------------------------------
 	if err != nil {
 		t.Fatalf("Expected no error, got: %v", err)
 	}
@@ -56,7 +56,7 @@ func TestMoveFile_Success(t *testing.T) {
 }
 
 func TestMoveFile_SourceNotFound(t *testing.T) {
-	// ---- Arrange ----
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 	sourcePath := e2e.TestDir + "/nonexistent_source.txt"
 	destPath := e2e.TestDir + "/test_move_dest2.txt"
@@ -66,15 +66,15 @@ func TestMoveFile_SourceNotFound(t *testing.T) {
 		Destination: destPath,
 	}
 
-	// ---- Act ----
+	// -------------------------------------- Act --------------------------------------
 	_, err := client.MoveFile(req)
 
-	// ---- Assert ----
+	// ------------------------------------ Assert -------------------------------------
 	e2e.AssertError(t, err, http.StatusNotFound, "Source path does not exist")
 }
 
 func TestMoveFile_DestinationAlreadyExists(t *testing.T) {
-	// ---- Arrange ----
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 	sourcePath := e2e.TestDir + "/test_move_source3.txt"
 	destPath := e2e.TestDir + "/test_move_dest3.txt"
@@ -103,15 +103,15 @@ func TestMoveFile_DestinationAlreadyExists(t *testing.T) {
 		Destination: destPath,
 	}
 
-	// ---- Act ----
+	// -------------------------------------- Act --------------------------------------
 	_, err = client.MoveFile(req)
 
-	// ---- Assert ----
+	// ------------------------------------ Assert -------------------------------------
 	e2e.AssertError(t, err, http.StatusConflict, "Destination path already exists")
 }
 
 func TestMoveFile_EmptySource(t *testing.T) {
-	// ---- Arrange ----
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 	destPath := e2e.TestDir + "/test_move_dest4.txt"
 
@@ -120,15 +120,15 @@ func TestMoveFile_EmptySource(t *testing.T) {
 		Destination: destPath,
 	}
 
-	// ---- Act ----
+	// -------------------------------------- Act --------------------------------------
 	_, err := client.MoveFile(req)
 
-	// ---- Assert ----
+	// ------------------------------------ Assert -------------------------------------
 	e2e.AssertError(t, err, http.StatusBadRequest, "Source path is required")
 }
 
 func TestMoveFile_EmptyDestination(t *testing.T) {
-	// ---- Arrange ----
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 	sourcePath := e2e.TestDir + "/test_move_source5.txt"
 
@@ -137,15 +137,15 @@ func TestMoveFile_EmptyDestination(t *testing.T) {
 		Destination: "",
 	}
 
-	// ---- Act ----
+	// -------------------------------------- Act --------------------------------------
 	_, err := client.MoveFile(req)
 
-	// ---- Assert ----
+	// ------------------------------------ Assert -------------------------------------
 	e2e.AssertError(t, err, http.StatusBadRequest, "Destination path is required")
 }
 
 func TestMoveDirectory_Success(t *testing.T) {
-	// ---- Arrange ----
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 	sourceDir := e2e.TestDir + "/test_move_dir_source"
 	destDir := e2e.TestDir + "/test_move_dir_dest"
@@ -166,10 +166,10 @@ func TestMoveDirectory_Success(t *testing.T) {
 		Destination: destDir,
 	}
 
-	// ---- Act ----
+	// -------------------------------------- Act --------------------------------------
 	_, err = client.MoveFile(req)
 
-	// ---- Assert ----
+	// ------------------------------------ Assert -------------------------------------
 	if err != nil {
 		t.Fatalf("Expected no error, got: %v", err)
 	}
@@ -190,7 +190,7 @@ func TestMoveDirectory_Success(t *testing.T) {
 }
 
 func TestMoveFile_RenameInSameDirectory(t *testing.T) {
-	// ---- Arrange ----
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 	sourcePath := e2e.TestDir + "/rename_source.txt"
 	destPath := e2e.TestDir + "/rename_dest.txt"
@@ -211,10 +211,10 @@ func TestMoveFile_RenameInSameDirectory(t *testing.T) {
 		Destination: destPath,
 	}
 
-	// ---- Act ----
+	// -------------------------------------- Act --------------------------------------
 	_, err = client.MoveFile(req)
 
-	// ---- Assert ----
+	// ------------------------------------ Assert -------------------------------------
 	if err != nil {
 		t.Fatalf("Expected no error, got: %v", err)
 	}
@@ -234,7 +234,7 @@ func TestMoveFile_RenameInSameDirectory(t *testing.T) {
 }
 
 func TestMoveFile_AcrossNestedDirectories(t *testing.T) {
-	// ---- Arrange ----
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 
 	sourceDir := e2e.TestDir + "/nested_source"
@@ -271,10 +271,10 @@ func TestMoveFile_AcrossNestedDirectories(t *testing.T) {
 		Destination: destPath,
 	}
 
-	// ---- Act ----
+	// -------------------------------------- Act --------------------------------------
 	_, err = client.MoveFile(req)
 
-	// ---- Assert ----
+	// ------------------------------------ Assert -------------------------------------
 	if err != nil {
 		t.Fatalf("Expected no error, got: %v", err)
 	}
@@ -294,7 +294,7 @@ func TestMoveFile_AcrossNestedDirectories(t *testing.T) {
 }
 
 func TestMoveDirectory_WithMultipleFiles(t *testing.T) {
-	// ---- Arrange ----
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 
 	sourceDir := e2e.TestDir + "/multi_file_source"
@@ -335,10 +335,10 @@ func TestMoveDirectory_WithMultipleFiles(t *testing.T) {
 		Destination: destDir,
 	}
 
-	// ---- Act ----
+	// -------------------------------------- Act --------------------------------------
 	_, err = client.MoveFile(req)
 
-	// ---- Assert ----
+	// ------------------------------------ Assert -------------------------------------
 	if err != nil {
 		t.Fatalf("Expected no error, got: %v", err)
 	}
@@ -371,7 +371,7 @@ func TestMoveDirectory_WithMultipleFiles(t *testing.T) {
 }
 
 func TestMoveFile_DestinationParentDoesNotExist(t *testing.T) {
-	// ---- Arrange ----
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 	sourcePath := e2e.TestDir + "/source_no_parent.txt"
 	destPath := e2e.TestDir + "/nonexistent_dir/dest.txt"
@@ -391,10 +391,10 @@ func TestMoveFile_DestinationParentDoesNotExist(t *testing.T) {
 		Destination: destPath,
 	}
 
-	// ---- Act ----
+	// -------------------------------------- Act --------------------------------------
 	_, err = client.MoveFile(req)
 
-	// ---- Assert ----
+	// ------------------------------------ Assert -------------------------------------
 	if err == nil {
 		t.Fatal("Expected error when destination parent directory doesn't exist, got nil")
 	}
@@ -407,7 +407,7 @@ func TestMoveFile_DestinationParentDoesNotExist(t *testing.T) {
 }
 
 func TestMoveDirectory_DestinationAlreadyExists(t *testing.T) {
-	// ---- Arrange ----
+	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
 
 	sourceDir := e2e.TestDir + "/dir_exists_source"
@@ -440,9 +440,9 @@ func TestMoveDirectory_DestinationAlreadyExists(t *testing.T) {
 		Destination: destDir,
 	}
 
-	// ---- Act ----
+	// -------------------------------------- Act --------------------------------------
 	_, err = client.MoveFile(req)
 
-	// ---- Assert ----
+	// ------------------------------------ Assert -------------------------------------
 	e2e.AssertError(t, err, http.StatusConflict, "Destination path already exists")
 }
