@@ -56,8 +56,8 @@ func (c *Client) MoveFile(req move_models.Request) (*v1.EmptyResponse, error) {
 	return call[move_models.Request, v1.EmptyResponse](c, "POST", "/api/v1/filesystem/move", req)
 }
 
-func (c *Client) ListFiles(req ls_models.Request) (*ls_models.Response, error) {
-	return call[ls_models.Request, ls_models.Response](c, "POST", "/api/v1/filesystem/ls", req)
+func (c *Client) ListFiles(req ls_models.Request) (*v1.CommandResponse, error) {
+	return call[ls_models.Request, v1.CommandResponse](c, "POST", "/api/v1/filesystem/ls", req)
 }
 
 func call[Req any, Res any](c *Client, method, path string, payload Req) (*Res, error) {

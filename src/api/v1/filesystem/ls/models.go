@@ -16,7 +16,3 @@ func (r Request) Validate() error {
 	}
 	return nil
 }
-
-type Response struct {
-	CommandOutput string `json:"command output"`
-}

@@ -45,17 +45,10 @@ func TestListFiles_BasicDirectory(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	output := resp.CommandOutput
-	if output == "" {
-		t.Fatal("expected command output to be non-empty")
-	}
-
-	// Verify all files are in the output
-	expectedFiles := []string{"file1.txt", "file2.txt", "file3.txt"}
-	for _, file := range expectedFiles {
-		if !strings.Contains(output, file) {
-			t.Errorf("expected output to contain %s, got: %s", file, output)
-		}
+	got := strings.TrimSpace(resp.CommandOutput)
+	expected := "file1.txt\nfile2.txt\nfile3.txt"
+	if got != expected {
+		t.Errorf("expected exactly %q, got %q", expected, got)
 	}
 }
 

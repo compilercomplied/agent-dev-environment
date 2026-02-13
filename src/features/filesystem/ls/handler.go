@@ -1,6 +1,7 @@
 package ls
 
 import (
+	"agent-dev-environment/src/api/v1"
 	"agent-dev-environment/src/api/v1/filesystem/ls"
 	"agent-dev-environment/src/library/api"
 	"bytes"
@@ -8,7 +9,7 @@ import (
 	"os/exec"
 )
 
-func Handler(req ls.Request) (*ls.Response, error) {
+func Handler(req ls.Request) (*v1.CommandResponse, error) {
 	// First verify the path exists
 	_, err := os.Stat(req.Path)
 	if err != nil {
@@ -24,7 +25,7 @@ func Handler(req ls.Request) (*ls.Response, error) {
 		return nil, err
 	}
 
-	return &ls.Response{CommandOutput: output}, nil
+	return &v1.CommandResponse{CommandOutput: output}, nil
 }
 
 func executeLinuxLS(path string, recursive bool, long bool) (string, error) {
