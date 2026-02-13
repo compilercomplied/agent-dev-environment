@@ -45,13 +45,9 @@ No match here
 	}
 
 	got := strings.TrimSpace(resp.CommandOutput)
-	// Default rg output for a single match in one file when multiple files are present:
-	// file1.txt:Hello world
-	if !strings.Contains(got, "file1.txt:Hello world") {
-		t.Errorf("expected output to contain match, got %q", got)
-	}
-	if strings.Contains(got, "file2.txt") {
-		t.Errorf("expected output NOT to contain file2.txt, got %q", got)
+	expected := filepath.Join(testDir, "file1.txt") + ":Hello world"
+	if got != expected {
+		t.Errorf("expected exactly %q, got %q", expected, got)
 	}
 }
 
@@ -92,8 +88,10 @@ func TestSearch_IgnoreCase(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
-	if !strings.Contains(resp.CommandOutput, "Hello World") {
-		t.Errorf("expected output to contain match with ignore case, got %q", resp.CommandOutput)
+	got := strings.TrimSpace(resp.CommandOutput)
+	expected := filepath.Join(testDir, "file1.txt") + ":Hello World"
+	if got != expected {
+		t.Errorf("expected exactly %q, got %q", expected, got)
 	}
 }
 
@@ -128,11 +126,8 @@ func TestSearch_FilesWithMatches(t *testing.T) {
 	}
 
 	got := strings.TrimSpace(resp.CommandOutput)
-	// Should only contain the filename
-	if !strings.Contains(got, "match.txt") {
-		t.Errorf("expected output to contain filename, got %q", got)
-	}
-	if strings.Contains(got, "Target found here") {
-		t.Errorf("expected output NOT to contain matching line, got %q", got)
+	expected := filepath.Join(testDir, "match.txt")
+	if got != expected {
+		t.Errorf("expected exactly %q, got %q", expected, got)
 	}
 }
