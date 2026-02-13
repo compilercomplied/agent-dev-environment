@@ -4,6 +4,7 @@ import (
 	"agent-dev-environment/src/internal/middleware"
 	"agent-dev-environment/src/features/filesystem/create_file"
 	"agent-dev-environment/src/features/filesystem/delete"
+	"agent-dev-environment/src/features/filesystem/mkdir"
 	"agent-dev-environment/src/features/filesystem/move"
 	"agent-dev-environment/src/features/filesystem/read"
 	"agent-dev-environment/src/library/api"
@@ -20,6 +21,7 @@ func main() {
 	mux.HandleFunc("GET /health", healthHandler)
 	mux.HandleFunc("POST /api/v1/filesystem/read", api.WrappedHandler(read.Handler))
 	mux.HandleFunc("POST /api/v1/filesystem/create_file", api.WrappedHandler(create_file.Handler))
+	mux.HandleFunc("POST /api/v1/filesystem/mkdir", api.WrappedHandler(mkdir.Handler))
 	mux.HandleFunc("POST /api/v1/filesystem/delete", api.WrappedHandler(delete.Handler))
 	mux.HandleFunc("POST /api/v1/filesystem/move", api.WrappedHandler(move.Handler))
 
