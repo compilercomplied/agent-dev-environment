@@ -18,6 +18,9 @@ func (r Request) Validate() error {
 	if r.Limit != nil && *r.Limit <= 0 {
 		return api.NewError(api.BadRequest, "Limit must be greater than 0")
 	}
+	if r.Limit != nil && *r.Limit > 500 {
+		return api.NewError(api.BadRequest, "Limit cannot exceed 500 lines")
+	}
 	return nil
 }
 

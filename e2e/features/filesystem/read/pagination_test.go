@@ -159,3 +159,26 @@ func TestRead_Pagination_FullFileNoParams(t *testing.T) {
 		t.Errorf("Expected 5 total lines, got %d", resp.TotalLines)
 	}
 }
+
+func TestRead_Pagination_ExceedMaxLimit(t *testing.T) {
+	// ------------------------------------ Arrange ------------------------------------
+	client := NewClient()
+	filePath := TestDir + "/read_exceed_limit.txt"
+	setupPaginationTestFile(t, client, filePath)
+	limit := 501
+	req := read_models.Request{
+		Path:  filePath,
+		Limit: &limit,
+	}
+
+	// -------------------------------------- Act --------------------------------------
+	_, err := client.ReadFile(req)
+
+	// ------------------------------------ Assert -------------------------------------
+	if err == nil {
+		t.Fatal("Expected error for limit > 500, got none")
+	}
+	if !strings.Contains(err.Error(), "Limit cannot exceed 500 lines") {
+		t.Errorf("Expected limit error message, got: %v", err)
+	}
+}
