@@ -24,6 +24,17 @@ The "hands" of a coding agent. This service provides a sandboxed Ubuntu environm
 
 The container ships as a fat Ubuntu-based image that includes the compiled Go API server alongside a full development toolchain. When the pod starts, the API server launches on port 8080 and the `agent-hub` begins orchestrating work against it.
 
+## Restricted Shell Execution
+
+The service provides a `POST /api/v1/shell/run` endpoint to execute a controlled set of commands. 
+
+**Allowed Commands:** `ls`, `rg`, `git`, `curl`.
+
+**Security Restrictions:**
+- `curl` is restricted to `localhost` targets only (e.g., `http://localhost:8080/health`).
+- Only whitelisted commands can be executed.
+- All other commands are rejected with a `400 Bad Request`.
+
 ## Mise
 
 [mise](https://mise.jdx.dev/) is used to manage tool versions and abstract common tasks. It is installed in the Docker image and available at runtime.
