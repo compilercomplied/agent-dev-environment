@@ -16,6 +16,7 @@ import (
 	read_models "agent-dev-environment/src/api/v1/filesystem/read"
 	replace_models "agent-dev-environment/src/api/v1/filesystem/replace"
 	search_models "agent-dev-environment/src/api/v1/filesystem/search"
+	run_models "agent-dev-environment/src/api/v1/shell/run"
 )
 
 type Client struct {
@@ -73,6 +74,10 @@ func (c *Client) Search(req search_models.Request) (*v1.CommandResponse, error) 
 
 func (c *Client) Replace(req replace_models.Request) (*replace_models.Response, error) {
 	return call[replace_models.Request, replace_models.Response](c, "POST", "/api/v1/filesystem/replace", req)
+}
+
+func (c *Client) RunShell(req run_models.Request) (*v1.CommandResponse, error) {
+	return call[run_models.Request, v1.CommandResponse](c, "POST", "/api/v1/shell/run", req)
 }
 
 func call[Req any, Res any](c *Client, method, path string, payload Req) (*Res, error) {
