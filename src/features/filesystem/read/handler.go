@@ -46,6 +46,10 @@ func Handler(req read_models.Request) (*read_models.Response, error) {
 		return nil, err
 	}
 
+	if offset >= totalLines && totalLines > 0 {
+		return nil, api.NewError(api.BadRequest, "Offset is out of bounds")
+	}
+
 	hasMore := false
 	if limit != -1 && offset+limit < totalLines {
 		hasMore = true

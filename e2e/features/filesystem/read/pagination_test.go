@@ -96,17 +96,14 @@ func TestRead_Pagination_OutOfBoundsOffset(t *testing.T) {
 	}
 
 	// -------------------------------------- Act --------------------------------------
-	resp, err := client.ReadFile(req)
+	_, err := client.ReadFile(req)
 
 	// ------------------------------------ Assert -------------------------------------
-	if err != nil {
-		t.Fatalf("Expected no error, got %v", err)
+	if err == nil {
+		t.Fatal("Expected error for out of bounds offset, got none")
 	}
-	if resp.Content != "" {
-		t.Errorf("Expected empty content for out of bounds offset, got %q", resp.Content)
-	}
-	if resp.LinesRead != 0 {
-		t.Errorf("Expected 0 lines read, got %d", resp.LinesRead)
+	if !strings.Contains(err.Error(), "Offset is out of bounds") {
+		t.Errorf("Expected out of bounds error message, got: %v", err)
 	}
 }
 
