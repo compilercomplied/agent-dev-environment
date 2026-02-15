@@ -90,6 +90,10 @@ func (c *Client) RunShell(req run_models.Request) (*v1.CommandResponse, error) {
 	return call[run_models.Request, v1.CommandResponse](c, "POST", "/api/v1/shell/run", req)
 }
 
+func (c *Client) ReloadEnv() (*v1.CommandResponse, error) {
+	return call[v1.EmptyResponse, v1.CommandResponse](c, "POST", "/api/v1/shell/reload_env", v1.EmptyResponse{})
+}
+
 func call[Req any, Res any](c *Client, method, path string, payload Req) (*Res, error) {
 	url := c.BaseURL + path
 	body, err := json.Marshal(payload)

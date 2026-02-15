@@ -12,6 +12,10 @@ run = "go build -o bin/agent-dev-environment ./src"
 description = "Run the application"
 run = "go run src/main.go"
 
+[tasks.reload-env]
+description = "Reload environment variables from Pulumi local stack"
+run = "scripts/load-env.sh"
+
 [tasks."test:e2e"]
 description = "Run E2E tests against a local server"
 depends = ["build"]
