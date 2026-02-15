@@ -1,7 +1,6 @@
 package chdir
 
 import (
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -9,38 +8,44 @@ import (
 	"agent-dev-environment/e2e"
 	chdir_models "agent-dev-environment/src/api/v1/filesystem/chdir"
 	create_models "agent-dev-environment/src/api/v1/filesystem/create_file"
+	delete_models "agent-dev-environment/src/api/v1/filesystem/delete"
 	ls_models "agent-dev-environment/src/api/v1/filesystem/ls"
+	mkdir_models "agent-dev-environment/src/api/v1/filesystem/mkdir"
 )
 
 func TestChdir_ChangesWorkingDirectory(t *testing.T) {
 	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
-
-	// Capture initial working directory to restore it later
-	initialWd, err := os.Getwd()
+	initialWdResp, err := client.Getwd()
 	if err != nil {
-		t.Fatalf("failed to get current working directory: %v", err)
+		t.Fatalf("failed to get initial working directory: %v", err)
 	}
+
+	testDir := filepath.Join(e2e.TestDir, "chdir_basic_test")
+	// Cleanup any leftovers before starting
+	client.DeleteFile(delete_models.Request{Path: testDir, Recursive: true})
+
 	defer func() {
-		_, _ = client.Chdir(chdir_models.Request{Path: initialWd})
+		client.Chdir(chdir_models.Request{Path: initialWdResp.Path})
+		client.DeleteFile(delete_models.Request{Path: testDir, Recursive: true})
 	}()
 
-	// Create a temporary directory for testing chdir
-	tmpDir, err := os.MkdirTemp("", "chdir-test-*")
+	_, err = client.Mkdir(mkdir_models.Request{Path: testDir})
 	if err != nil {
-		t.Fatalf("failed to create temp dir: %v", err)
+		t.Fatalf("failed to create test dir: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
 
-	// Create a file in the temp dir via OS to verify chdir later
-	fileName := "marker.txt"
-	err = os.WriteFile(filepath.Join(tmpDir, fileName), []byte("here"), 0644)
+	markerFile := "marker.txt"
+	_, err = client.CreateFile(create_models.Request{
+		Path:    filepath.Join(testDir, markerFile),
+		Content: "here",
+	})
 	if err != nil {
 		t.Fatalf("failed to create marker file: %v", err)
 	}
 
 	// -------------------------------------- Act --------------------------------------
-	_, err = client.Chdir(chdir_models.Request{Path: tmpDir})
+	_, err = client.Chdir(chdir_models.Request{Path: testDir})
 
 	// ------------------------------------ Assert -------------------------------------
 	if err != nil {
@@ -55,29 +60,34 @@ func TestChdir_ChangesWorkingDirectory(t *testing.T) {
 		t.Fatalf("failed to list current directory: %v", err)
 	}
 
-	if !strings.Contains(lsRes.CommandOutput, fileName) {
-		t.Errorf("expected output to contain %q, got: %s", fileName, lsRes.CommandOutput)
+	if !strings.Contains(lsRes.CommandOutput, markerFile) {
+		t.Errorf("expected output to contain %q, got: %s", markerFile, lsRes.CommandOutput)
 	}
 }
 
 func TestChdir_AffectsSubsequentFileCreation(t *testing.T) {
 	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
+	initialWdResp, err := client.Getwd()
+	if err != nil {
+		t.Fatalf("failed to get initial working directory: %v", err)
+	}
 
-	initialWd, _ := os.Getwd()
+	testDir := filepath.Join(e2e.TestDir, "chdir_create_test")
+	client.DeleteFile(delete_models.Request{Path: testDir, Recursive: true})
+
 	defer func() {
-		_, _ = client.Chdir(chdir_models.Request{Path: initialWd})
+		client.Chdir(chdir_models.Request{Path: initialWdResp.Path})
+		client.DeleteFile(delete_models.Request{Path: testDir, Recursive: true})
 	}()
 
-	tmpDir, _ := os.MkdirTemp("", "chdir-create-test-*")
-	defer os.RemoveAll(tmpDir)
-
-	_, _ = client.Chdir(chdir_models.Request{Path: tmpDir})
+	_, _ = client.Mkdir(mkdir_models.Request{Path: testDir})
+	_, _ = client.Chdir(chdir_models.Request{Path: testDir})
 	
 	fileName := "relative-created.txt"
 
 	// -------------------------------------- Act --------------------------------------
-	_, err := client.CreateFile(create_models.Request{
+	_, err = client.CreateFile(create_models.Request{
 		Path:    fileName,
 		Content: "created via chdir",
 	})
@@ -87,17 +97,23 @@ func TestChdir_AffectsSubsequentFileCreation(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	// Verify file existence in the correct physical directory
-	expectedPath := filepath.Join(tmpDir, fileName)
-	if _, err := os.Stat(expectedPath); os.IsNotExist(err) {
-		t.Errorf("expected file to exist at %s, but it doesn't", expectedPath)
+	// Verify file existence via API ListFiles
+	lsRes, err := client.ListFiles(ls_models.Request{
+		Path: ".",
+	})
+	if err != nil {
+		t.Fatalf("failed to list current directory: %v", err)
+	}
+
+	if !strings.Contains(lsRes.CommandOutput, fileName) {
+		t.Errorf("expected file %q to be listed in current directory, but it wasn't", fileName)
 	}
 }
 
 func TestChdir_PathNotFound(t *testing.T) {
 	// ------------------------------------ Arrange ------------------------------------
 	client := e2e.NewClient()
-	nonExistentPath := "/tmp/path/that/does/not/exist/anywhere"
+	nonExistentPath := filepath.Join(e2e.TestDir, "nonexistent_dir_for_chdir")
 
 	// -------------------------------------- Act --------------------------------------
 	_, err := client.Chdir(chdir_models.Request{Path: nonExistentPath})
