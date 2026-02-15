@@ -9,6 +9,7 @@ import (
 
 	"agent-dev-environment/src/api/v1"
 	create_models "agent-dev-environment/src/api/v1/filesystem/create_file"
+	chdir_models "agent-dev-environment/src/api/v1/filesystem/chdir"
 	delete_models "agent-dev-environment/src/api/v1/filesystem/delete"
 	ls_models "agent-dev-environment/src/api/v1/filesystem/ls"
 	mkdir_models "agent-dev-environment/src/api/v1/filesystem/mkdir"
@@ -46,6 +47,10 @@ func NewClient() *Client {
 
 func (c *Client) CreateFile(req create_models.Request) (*v1.EmptyResponse, error) {
 	return call[create_models.Request, v1.EmptyResponse](c, "POST", "/api/v1/filesystem/create_file", req)
+}
+
+func (c *Client) Chdir(req chdir_models.Request) (*v1.EmptyResponse, error) {
+	return call[chdir_models.Request, v1.EmptyResponse](c, "POST", "/api/v1/filesystem/chdir", req)
 }
 
 func (c *Client) Mkdir(req mkdir_models.Request) (*v1.EmptyResponse, error) {

@@ -5,6 +5,7 @@ import (
 	"agent-dev-environment/src/features/filesystem/create_file"
 	"agent-dev-environment/src/features/filesystem/delete"
 	"agent-dev-environment/src/features/filesystem/ls"
+	"agent-dev-environment/src/features/filesystem/chdir"
 	"agent-dev-environment/src/features/filesystem/mkdir"
 	"agent-dev-environment/src/features/filesystem/move"
 	"agent-dev-environment/src/features/filesystem/read"
@@ -29,6 +30,7 @@ func main() {
 	mux.HandleFunc("POST /api/v1/filesystem/delete", api.WrappedHandler(delete.Handler))
 	mux.HandleFunc("POST /api/v1/filesystem/move", api.WrappedHandler(move.Handler))
 	mux.HandleFunc("POST /api/v1/filesystem/ls", api.WrappedHandler(ls.Handler))
+	mux.HandleFunc("POST /api/v1/filesystem/chdir", api.WrappedHandler(chdir.Handler))
 	mux.HandleFunc("POST /api/v1/filesystem/search", api.WrappedHandler(search.Handler))
 	mux.HandleFunc("POST /api/v1/filesystem/replace", api.WrappedHandler(replace.Handler))
 	mux.HandleFunc("POST /api/v1/shell/run", api.WrappedHandler(run.Handler))
