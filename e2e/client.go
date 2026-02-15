@@ -18,6 +18,7 @@ import (
 	read_models "agent-dev-environment/src/api/v1/filesystem/read"
 	replace_models "agent-dev-environment/src/api/v1/filesystem/replace"
 	search_models "agent-dev-environment/src/api/v1/filesystem/search"
+	reload_models "agent-dev-environment/src/api/v1/shell/reload_env"
 	run_models "agent-dev-environment/src/api/v1/shell/run"
 )
 
@@ -88,6 +89,10 @@ func (c *Client) Replace(req replace_models.Request) (*replace_models.Response, 
 
 func (c *Client) RunShell(req run_models.Request) (*v1.CommandResponse, error) {
 	return call[run_models.Request, v1.CommandResponse](c, "POST", "/api/v1/shell/run", req)
+}
+
+func (c *Client) ReloadEnv(req reload_models.Request) (*v1.EmptyResponse, error) {
+	return call[reload_models.Request, v1.EmptyResponse](c, "POST", "/api/v1/shell/reload_env", req)
 }
 
 func call[Req any, Res any](c *Client, method, path string, payload Req) (*Res, error) {

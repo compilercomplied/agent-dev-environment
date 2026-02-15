@@ -20,7 +20,7 @@ func Handler(req ls.Request) (*v1.CommandResponse, error) {
 	}
 
 	// Execute Linux ls command
-	output, err := executeLinuxLS(req.Path, req.Recursive, req.Long)
+	output, err := executeLinuxLS(req.Path, req.Recursive, req.Long, req.Hidden)
 	if err != nil {
 		return nil, err
 	}
@@ -28,10 +28,13 @@ func Handler(req ls.Request) (*v1.CommandResponse, error) {
 	return &v1.CommandResponse{CommandOutput: output}, nil
 }
 
-func executeLinuxLS(path string, recursive bool, long bool) (string, error) {
+func executeLinuxLS(path string, recursive bool, long bool, hidden bool) (string, error) {
 	var args []string
 
 	// Build ls command arguments
+	if hidden {
+		args = append(args, "-a")
+	}
 	if long {
 		args = append(args, "-l")
 	}

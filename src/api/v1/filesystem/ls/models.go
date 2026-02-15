@@ -8,6 +8,7 @@ type Request struct {
 	Path      string `json:"path"`
 	Recursive bool   `json:"recursive"`
 	Long      bool   `json:"long"`
+	Hidden    bool   `json:"hidden"`
 }
 
 func (r Request) Validate() error {
