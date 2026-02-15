@@ -12,6 +12,7 @@ import (
 	"agent-dev-environment/src/features/filesystem/read"
 	"agent-dev-environment/src/features/filesystem/replace"
 	"agent-dev-environment/src/features/filesystem/search"
+	"agent-dev-environment/src/features/shell/reload_env"
 	"agent-dev-environment/src/features/shell/run"
 	"agent-dev-environment/src/library/api"
 	"agent-dev-environment/src/library/config"
@@ -35,6 +36,7 @@ func main() {
 	mux.HandleFunc("POST /api/v1/filesystem/getwd", api.WrappedHandler(getwd.Handler))
 	mux.HandleFunc("POST /api/v1/filesystem/search", api.WrappedHandler(search.Handler))
 	mux.HandleFunc("POST /api/v1/filesystem/replace", api.WrappedHandler(replace.Handler))
+	mux.HandleFunc("POST /api/v1/shell/reload_env", api.WrappedHandler(reload_env.Handler))
 	mux.HandleFunc("POST /api/v1/shell/run", api.WrappedHandler(run.Handler))
 
 	handler := middleware.PanicRecovery(mux)
