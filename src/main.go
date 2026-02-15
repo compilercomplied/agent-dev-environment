@@ -18,6 +18,7 @@ import (
 	"agent-dev-environment/src/library/config"
 	"agent-dev-environment/src/library/logger"
 	"net/http"
+	"time"
 )
 
 func main() {
@@ -39,7 +40,8 @@ func main() {
 	mux.HandleFunc("POST /api/v1/shell/reload_env", api.WrappedHandler(reload_env.Handler))
 	mux.HandleFunc("POST /api/v1/shell/run", api.WrappedHandler(run.Handler))
 
-	handler := middleware.PanicRecovery(mux)
+	// Chain middlewares: Timeout -> PanicRecovery -> mux
+	handler := middleware.Timeout(10 * time.Minute)(middleware.PanicRecovery(mux))
 
 	port := "8080"
 	logger.Printf("Starting server on port %s...", port)

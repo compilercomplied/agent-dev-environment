@@ -53,6 +53,8 @@ func WrappedHandler[Req any, Res any](hf HandlerFunc[Req, Res]) http.HandlerFunc
 			}
 		}
 
+		logger.Info("Incoming request", "method", r.Method, "path", r.URL.Path, "payload", req)
+
 		// Automatic validation if the request implements Validator
 		if v, ok := any(req).(Validator); ok {
 			if err := v.Validate(); err != nil {
@@ -67,6 +69,7 @@ func WrappedHandler[Req any, Res any](hf HandlerFunc[Req, Res]) http.HandlerFunc
 			return
 		}
 
+		logger.Info("Outgoing response", "method", r.Method, "path", r.URL.Path, "response", res)
 		respond(w, res)
 	}
 }
@@ -74,6 +77,7 @@ func WrappedHandler[Req any, Res any](hf HandlerFunc[Req, Res]) http.HandlerFunc
 func handleError(w http.ResponseWriter, err error) {
 	var fErr *AppError
 	if errors.As(err, &fErr) {
+		logger.Error("Request failed", "error", fErr.Message, "code", fErr.Code)
 		respondError(w, fErr.Message, fErr.Code)
 		return
 	}
