@@ -1,7 +1,7 @@
 encryptionsalt: v1:sZCL6oMbKCQ=:v1:ymwexuRg0+J7Ayca:FuyjIbMyh7MX0B64pgZqPlWVJQHpiQ==
 config:
   agent-dev-environment:AGENT_DEV_ENVIRONMENT_LOGGING_TYPE: structured
-  agent-dev-environment:GITHUB_ACCESS_TOKEN:
-    secure: v1:9T/gDCv7dnSaub6L:ruWyr9nFNi9JQv+JVEjkokikl+ksfA7R5aJ20ltg6+FeXv01O1E6gPewfsK02fLWFAbMsmCGd/k=
   agent-dev-environment:PULUMI_CONFIG_PASSPHRASE:
     secure: v1:+4LicSK2FBbnXvcS:HI9si7GLYVLe8jNOimtfQqfFsKXChDk08/sj2aHDA5Mb5f4gWltsXO05iMj7RhyD6hmhIss7l5aYzOeBWIDh16sPVA==
+  agent-dev-environment:GITHUB_TOKEN:
+    secure: v1:etD64beWyjztt1w8:Sb1iBXdypOclHjpCOdN1/QvvhkCRRAsgUIHDC54Qr5VSHRSvGEcslxjLozVngSN4v7zBzzxTrrQ=
