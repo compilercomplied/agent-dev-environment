@@ -60,3 +60,44 @@ func TestCreateFile_Conflict(t *testing.T) {
 	// ------------------------------------ Assert -------------------------------------
 	AssertError(t, err, http.StatusConflict, "File already exists")
 }
+
+func TestCreateFile_Overwrite(t *testing.T) {
+	// ------------------------------------ Arrange ------------------------------------
+	client := NewClient()
+	filePath := TestDir + "/create_file_overwrite.txt"
+	initialContent := "initial"
+	newContent := "overwritten"
+
+	// Create initial file
+	_, err := client.CreateFile(create_models.Request{
+		Path:    filePath,
+		Content: initialContent,
+	})
+	if err != nil {
+		t.Fatalf("Failed to setup initial file: %v", err)
+	}
+
+	req := create_models.Request{
+		Path:      filePath,
+		Content:   newContent,
+		Overwrite: true,
+	}
+
+	// -------------------------------------- Act --------------------------------------
+	_, err = client.CreateFile(req)
+
+	// ------------------------------------ Assert -------------------------------------
+	if err != nil {
+		t.Fatalf("Expected no error when overwriting, got: %v", err)
+	}
+
+	// Verify content
+	readReq := read_models.Request{Path: filePath}
+	resp, err := client.ReadFile(readReq)
+	if err != nil {
+		t.Fatalf("Failed to verify file via API: %v", err)
+	}
+	if resp.Content != newContent {
+		t.Errorf("Expected content %q, got %q", newContent, resp.Content)
+	}
+}

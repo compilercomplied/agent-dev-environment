@@ -5,11 +5,12 @@ import (
 	"agent-dev-environment/src/api/v1/filesystem/search"
 	"agent-dev-environment/src/library/api"
 	"bytes"
+	"context"
 	"os"
 	"os/exec"
 )
 
-func Handler(req search.Request) (*v1.CommandResponse, error) {
+func Handler(ctx context.Context, req search.Request) (*v1.CommandResponse, error) {
 	// First verify the path exists
 	_, err := os.Stat(req.Path)
 	if err != nil {
@@ -20,7 +21,7 @@ func Handler(req search.Request) (*v1.CommandResponse, error) {
 	}
 
 	// Execute ripgrep (rg) command
-	output, err := executeRipgrep(req)
+	output, err := executeRipgrep(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +29,7 @@ func Handler(req search.Request) (*v1.CommandResponse, error) {
 	return &v1.CommandResponse{CommandOutput: output}, nil
 }
 
-func executeRipgrep(req search.Request) (string, error) {
+func executeRipgrep(ctx context.Context, req search.Request) (string, error) {
 	var args []string
 
 	if req.FilesWithMatches {
@@ -40,7 +41,7 @@ func executeRipgrep(req search.Request) (string, error) {
 	
 	args = append(args, req.Pattern, req.Path)
 
-	cmd := exec.Command("rg", args...)
+	cmd := exec.CommandContext(ctx, "rg", args...)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr

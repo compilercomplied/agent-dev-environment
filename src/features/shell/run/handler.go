@@ -5,11 +5,12 @@ import (
 	"agent-dev-environment/src/api/v1/shell/run"
 	"agent-dev-environment/src/library/api"
 	"bytes"
+	"context"
 	"os/exec"
 )
 
-func Handler(req run.Request) (*v1.CommandResponse, error) {
-	cmd := exec.Command(req.Command, req.Args...)
+func Handler(ctx context.Context, req run.Request) (*v1.CommandResponse, error) {
+	cmd := exec.CommandContext(ctx, req.Command, req.Args...)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr

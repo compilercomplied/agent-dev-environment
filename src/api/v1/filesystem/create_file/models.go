@@ -3,8 +3,9 @@ package create_file
 import "agent-dev-environment/src/library/api"
 
 type Request struct {
-	Path    string `json:"path"`
-	Content string `json:"content"`
+	Path      string `json:"path"`
+	Content   string `json:"content"`
+	Overwrite bool   `json:"overwrite"`
 }
 
 func (r Request) Validate() error {

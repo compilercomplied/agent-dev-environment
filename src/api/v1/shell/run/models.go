@@ -12,6 +12,7 @@ type Request struct {
 }
 
 var allowedCommands = map[string]func([]string) error{
+	"bash":    func(args []string) error { return nil },
 	"cargo":   func(args []string) error { return nil },
 	"cat":     func(args []string) error { return nil },
 	"cp":      func(args []string) error { return nil },
@@ -39,6 +40,7 @@ var allowedCommands = map[string]func([]string) error{
 	"rg":      func(args []string) error { return nil },
 	"rm":      func(args []string) error { return nil },
 	"sed":     func(args []string) error { return nil },
+	"sh":      func(args []string) error { return nil },
 	"echo":    func(args []string) error { return nil },
 	"tee":     func(args []string) error { return nil },
 	"base64":  func(args []string) error { return nil },

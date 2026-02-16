@@ -2,12 +2,13 @@ package move
 
 import (
 	"agent-dev-environment/src/library/api"
+	"context"
 	v1 "agent-dev-environment/src/api/v1"
 	models "agent-dev-environment/src/api/v1/filesystem/move"
 	"os"
 )
 
-func Handler(req models.Request) (*v1.EmptyResponse, error) {
+func Handler(ctx context.Context, req models.Request) (*v1.EmptyResponse, error) {
 	// Check if source exists
 	if _, err := os.Stat(req.Source); os.IsNotExist(err) {
 		return nil, api.NewError(api.NotFound, "Source path does not exist")
