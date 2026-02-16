@@ -9,9 +9,10 @@ import (
 	reload_models "agent-dev-environment/src/api/v1/shell/reload_env"
 	"agent-dev-environment/src/library/api"
 	"agent-dev-environment/src/library/logger"
+	"context"
 )
 
-func Handler(req reload_models.Request) (*v1.EmptyResponse, error) {
+func Handler(ctx context.Context, req reload_models.Request) (*v1.EmptyResponse, error) {
 	// Load the specified env file into the current process
 	if err := loadDotEnv(req.Path); err != nil {
 		logger.Error("Failed to load env file", "error", err, "path", req.Path)

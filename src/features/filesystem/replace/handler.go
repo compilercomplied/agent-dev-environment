@@ -6,9 +6,10 @@ import (
 
 	replace_models "agent-dev-environment/src/api/v1/filesystem/replace"
 	"agent-dev-environment/src/library/api"
+	"context"
 )
 
-func Handler(req replace_models.Request) (*replace_models.Response, error) {
+func Handler(ctx context.Context, req replace_models.Request) (*replace_models.Response, error) {
 	content, err := os.ReadFile(req.Path)
 	if err != nil {
 		if os.IsNotExist(err) {

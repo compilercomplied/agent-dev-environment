@@ -6,9 +6,10 @@ import (
 	"agent-dev-environment/src/api/v1"
 	mkdir_models "agent-dev-environment/src/api/v1/filesystem/mkdir"
 	"agent-dev-environment/src/library/api"
+	"context"
 )
 
-func Handler(req mkdir_models.Request) (*v1.EmptyResponse, error) {
+func Handler(ctx context.Context, req mkdir_models.Request) (*v1.EmptyResponse, error) {
 	stat, err := os.Stat(req.Path)
 	if err == nil {
 		if !stat.IsDir() {

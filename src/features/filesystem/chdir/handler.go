@@ -7,9 +7,10 @@ import (
 	"agent-dev-environment/src/api/v1"
 	chdir_models "agent-dev-environment/src/api/v1/filesystem/chdir"
 	"agent-dev-environment/src/library/api"
+	"context"
 )
 
-func Handler(req chdir_models.Request) (*v1.EmptyResponse, error) {
+func Handler(ctx context.Context, req chdir_models.Request) (*v1.EmptyResponse, error) {
 	absPath, err := filepath.Abs(req.Path)
 	if err != nil {
 		return nil, api.NewError(api.BadRequest, "Invalid path: "+err.Error())

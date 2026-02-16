@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -39,7 +40,7 @@ type Validator interface {
 }
 
 // HandlerFunc is our "Clean Handler" signature
-type HandlerFunc[Req any, Res any] func(req Req) (*Res, error)
+type HandlerFunc[Req any, Res any] func(ctx context.Context, req Req) (*Res, error)
 
 // WrappedHandler converts a Clean Handler into a standard http.HandlerFunc
 func WrappedHandler[Req any, Res any](hf HandlerFunc[Req, Res]) http.HandlerFunc {
@@ -63,7 +64,7 @@ func WrappedHandler[Req any, Res any](hf HandlerFunc[Req, Res]) http.HandlerFunc
 			}
 		}
 
-		res, err := hf(req)
+		res, err := hf(r.Context(), req)
 		if err != nil {
 			handleError(w, err)
 			return

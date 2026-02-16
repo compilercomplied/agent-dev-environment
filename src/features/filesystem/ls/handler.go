@@ -5,11 +5,12 @@ import (
 	"agent-dev-environment/src/api/v1/filesystem/ls"
 	"agent-dev-environment/src/library/api"
 	"bytes"
+	"context"
 	"os"
 	"os/exec"
 )
 
-func Handler(req ls.Request) (*v1.CommandResponse, error) {
+func Handler(ctx context.Context, req ls.Request) (*v1.CommandResponse, error) {
 	// First verify the path exists
 	_, err := os.Stat(req.Path)
 	if err != nil {
@@ -20,7 +21,7 @@ func Handler(req ls.Request) (*v1.CommandResponse, error) {
 	}
 
 	// Execute Linux ls command
-	output, err := executeLinuxLS(req.Path, req.Recursive, req.Long, req.Hidden)
+	output, err := executeLinuxLS(ctx, req.Path, req.Recursive, req.Long, req.Hidden)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +29,7 @@ func Handler(req ls.Request) (*v1.CommandResponse, error) {
 	return &v1.CommandResponse{CommandOutput: output}, nil
 }
 
-func executeLinuxLS(path string, recursive bool, long bool, hidden bool) (string, error) {
+func executeLinuxLS(ctx context.Context, path string, recursive bool, long bool, hidden bool) (string, error) {
 	var args []string
 
 	// Build ls command arguments
@@ -43,7 +44,7 @@ func executeLinuxLS(path string, recursive bool, long bool, hidden bool) (string
 	}
 	args = append(args, path)
 
-	cmd := exec.Command("ls", args...)
+	cmd := exec.CommandContext(ctx, "ls", args...)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr

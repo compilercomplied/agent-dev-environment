@@ -7,9 +7,10 @@ import (
 
 	read_models "agent-dev-environment/src/api/v1/filesystem/read"
 	"agent-dev-environment/src/library/api"
+	"context"
 )
 
-func Handler(req read_models.Request) (*read_models.Response, error) {
+func Handler(ctx context.Context, req read_models.Request) (*read_models.Response, error) {
 	file, err := os.Open(req.Path)
 	if err != nil {
 		if os.IsNotExist(err) {

@@ -7,9 +7,10 @@ import (
 	"agent-dev-environment/src/api/v1"
 	delete_models "agent-dev-environment/src/api/v1/filesystem/delete"
 	"agent-dev-environment/src/library/api"
+	"context"
 )
 
-func Handler(req delete_models.Request) (*v1.EmptyResponse, error) {
+func Handler(ctx context.Context, req delete_models.Request) (*v1.EmptyResponse, error) {
 	stat, err := os.Stat(req.Path)
 	if err != nil {
 		if os.IsNotExist(err) {

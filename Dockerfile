@@ -38,6 +38,10 @@ ENV PATH="/root/.local/share/mise/bin:/root/.local/share/mise/shims:$PATH"
 # Copy the compiled binary from builder
 COPY --from=builder /app/agent-dev-environment .
 
+# Copy and set entrypoint
+COPY docker-scripts/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 EXPOSE 8080
 
-CMD ["./agent-dev-environment"]
+ENTRYPOINT ["/app/entrypoint.sh"]
