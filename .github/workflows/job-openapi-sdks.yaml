@@ -5,6 +5,14 @@ on:
       docker_target:
         required: true
         type: string
+      publish_to_pypi:
+        required: false
+        type: boolean
+        default: false
+      version_suffix:
+        required: false
+        type: string
+        default: ""
 
 jobs:
   generate:
@@ -19,9 +27,9 @@ jobs:
           - lang: python
             pkg_prefix: "gdariodev"
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      
+      - uses: actions/checkout@v6
+      - uses: docker/setup-buildx-action@v4
+
       - name: Export Spec from Docker
         run: docker build --target ${{ inputs.docker_target }} --output type=local,dest=. .
 
@@ -35,7 +43,7 @@ jobs:
 
       - name: Restore Last Successful Spec Hash
         id: cache-hash
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: .last_spec_hash
           key: spec-hash-${{ steps.spec-hash.outputs.hash }}
@@ -44,7 +52,11 @@ jobs:
         id: check-change
         shell: bash
         run: |
-          if [ -f .last_spec_hash ]; then
+          # We force 'changed=true' for PRs so users always get a fresh Beta artifact for testing
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+             echo "changed=true" >> "$GITHUB_OUTPUT"
+             echo "Pull Request detected. Forcing SDK generation for Beta artifact."
+          elif [ -f .last_spec_hash ]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "API Spec has not changed. Skipping SDK generation."
           else
@@ -54,19 +66,21 @@ jobs:
           fi
 
       # --- Modular Language Dispatch ---
-      
+
       - name: Process Python SDK
         if: steps.check-change.outputs.changed == 'true' && matrix.lang == 'python'
         uses: ./.github/workflows/openapi-sdks/actions/python
         with:
           package_name: ${{ matrix.pkg_prefix }}-${{ github.event.repository.name }}
-          package_version: 1.0.${{ github.run_number }}
+          package_version: 1.0.${{ github.run_number }}${{ inputs.version_suffix }}
+          publish_to_pypi: ${{ inputs.publish_to_pypi }}
 
-      # --- Save Hash on Success ---
+      # --- Save Hash on Success (Trunk only) ---
 
       - name: Save New Spec Hash
-        if: steps.check-change.outputs.changed == 'true' && success()
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master' && steps.check-change.outputs.changed == 'true' && success()
         uses: actions/cache/save@v5
         with:
           path: .last_spec_hash
           key: spec-hash-${{ steps.spec-hash.outputs.hash }}
+

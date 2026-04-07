@@ -5,6 +5,10 @@ inputs:
   package_version:
     description: Version of the package
     required: true
+  publish_to_pypi:
+    description: Whether to publish to PyPI
+    required: false
+    default: "true"
   # --- INTERNAL PARAMETERS (Visible at the top) ---
   output_dir:
     description: Internal output directory
@@ -37,6 +41,7 @@ runs:
         python -m build
 
     - name: Publish to PyPI (Python / OIDC)
+      if: inputs.publish_to_pypi == 'true'
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         packages-dir: ${{ inputs.dist_dir }}
@@ -44,5 +49,5 @@ runs:
     - name: Upload Python SDK Artifact
       uses: actions/upload-artifact@v7
       with:
-        name: sdk-python
+        name: sdk-python-${{ inputs.package_version }}
         path: ${{ inputs.output_dir }}

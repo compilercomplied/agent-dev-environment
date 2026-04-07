@@ -12,22 +12,28 @@ jobs:
   pre-setup:
     runs-on: ubuntu-latest
     outputs:
-      is_commit_on_trunk: ${{ steps.check-trunk.outputs.is_trunk }}
+      is_commit_on_trunk: ${{ steps.check.outputs.is_trunk }}
+      is_pr: ${{ steps.check.outputs.is_pr }}
+      pr_number: ${{ github.event.pull_request.number }}
     steps:
-      - name: Check if on trunk
-        id: check-trunk
+      - name: Check Environment
+        id: check
         shell: bash
         run: |
           if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/master" ]]; then
             echo "is_trunk=true" >> "$GITHUB_OUTPUT"
+            echo "is_pr=false" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "is_trunk=false" >> "$GITHUB_OUTPUT"
+            echo "is_pr=true" >> "$GITHUB_OUTPUT"
           else
             echo "is_trunk=false" >> "$GITHUB_OUTPUT"
+            echo "is_pr=false" >> "$GITHUB_OUTPUT"
           fi
       - name: Pipeline started
         shell: bash
         run: |
-          echo "Initializing pipeline for ${{ github.ref }} via ${{ github.event_name }}"
-          echo "Is trunk: ${{ steps.check-trunk.outputs.is_trunk }}"
+          echo "Event: ${{ github.event_name }} | Trunk: ${{ steps.check.outputs.is_trunk }} | PR: ${{ steps.check.outputs.is_pr }}"
 
   # 2. QA: Run E2E tests
   qa:
@@ -35,16 +41,18 @@ jobs:
     uses: ./.github/workflows/job-qa.yaml
     secrets: inherit
 
-  # 3. OPENAPI-SDKS: Generate OpenAPI and SDKs (Only on trunk)
+  # 3. OPENAPI-SDKS: Generate OpenAPI and SDKs
   openapi-sdks:
     needs: [pre-setup, qa]
-    if: needs.pre-setup.outputs.is_commit_on_trunk == 'true'
+    if: needs.pre-setup.outputs.is_commit_on_trunk == 'true' || needs.pre-setup.outputs.is_pr == 'true'
     permissions:
       id-token: write
       contents: read
     uses: ./.github/workflows/job-openapi-sdks.yaml
     with:
       docker_target: "openapi-spec"
+      publish_to_pypi: ${{ needs.pre-setup.outputs.is_commit_on_trunk == 'true' }}
+      version_suffix: ${{ needs.pre-setup.outputs.is_pr == 'true' && format('b{0}', needs.pre-setup.outputs.pr_number) || '' }}
 
   # 4. DEPLOY: Launch deployment
   deploy:
