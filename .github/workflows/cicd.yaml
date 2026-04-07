@@ -5,16 +5,25 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
 
 jobs:
   # 1. PRE-SETUP: Define semantic conditions
   pre-setup:
     runs-on: ubuntu-latest
     outputs:
-      is_commit_on_trunk: ${{ github.event_name == 'push' && github.ref_name == 'master' }}
+      is_commit_on_trunk: ${{ steps.check-trunk.outputs.is_trunk }}
     steps:
+      - name: Check if on trunk
+        id: check-trunk
+        run: |
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/master" ]]; then
+            echo "is_trunk=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_trunk=false" >> $GITHUB_OUTPUT
+          fi
       - name: Pipeline started
-        run: echo "Initializing pipeline for ${{ github.ref_name }} via ${{ github.event_name }}"
+        run: echo "Initializing pipeline for ${{ github.ref }} via ${{ github.event_name }} (Is trunk: ${{ steps.check-trunk.outputs.is_trunk }})"
 
   # 2. QA: Run E2E tests
   qa:
