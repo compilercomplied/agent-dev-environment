@@ -10,6 +10,14 @@ import (
 	"os/exec"
 )
 
+// Handler lists directory contents
+// @Summary List directory
+// @Description Returns a list of files and directories in the specified path
+// @Accept  json
+// @Produce  json
+// @Param   request  body  ls.Request  true  "List Directory Request"
+// @Success 200 {object} v1.CommandResponse
+// @Router /api/v1/filesystem/ls [post]
 func Handler(ctx context.Context, req ls.Request) (*v1.CommandResponse, error) {
 	// First verify the path exists
 	_, err := os.Stat(req.Path)

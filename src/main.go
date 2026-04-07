@@ -21,6 +21,11 @@ import (
 	"time"
 )
 
+// @title Agent Dev Environment API
+// @version 1.0
+// @description This is a language-agnostic filesystem and shell API.
+// @host localhost:8080
+// @BasePath /
 func main() {
 	logFormat := config.GetValue("LOGGING_TYPE")
 	logger.Init(logFormat)

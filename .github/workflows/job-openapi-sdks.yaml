@@ -1,0 +1,35 @@
+name: Job - OpenAPI SDK Generation
+on:
+  workflow_call:
+    inputs:
+      docker_target:
+        required: true
+        type: string
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - lang: python
+            pkg_prefix: "gdariodev"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      
+      - name: Export Spec from Docker
+        run: docker build --target ${{ inputs.docker_target }} --output type=local,dest=. .
+
+      # --- Modular Language Dispatch ---
+      
+      - name: Process Python SDK
+        if: matrix.lang == 'python'
+        uses: ./.github/workflows/openapi-sdks/actions/python
+        with:
+          package_name: ${{ matrix.pkg_prefix }}-${{ github.event.repository.name }}
+          package_version: 1.0.${{ github.run_number }}

@@ -8,6 +8,14 @@ import (
 	"os"
 )
 
+// Handler moves a file or directory
+// @Summary Move file/directory
+// @Description Moves the specified source to the destination path
+// @Accept  json
+// @Produce  json
+// @Param   request  body  models.Request  true  "Move Request"
+// @Success 200 {object} v1.EmptyResponse
+// @Router /api/v1/filesystem/move [post]
 func Handler(ctx context.Context, req models.Request) (*v1.EmptyResponse, error) {
 	// Check if source exists
 	if _, err := os.Stat(req.Source); os.IsNotExist(err) {

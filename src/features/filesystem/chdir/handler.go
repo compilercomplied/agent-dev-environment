@@ -10,6 +10,14 @@ import (
 	"context"
 )
 
+// Handler changes current working directory
+// @Summary Change working directory
+// @Description Changes the current working directory of the server
+// @Accept  json
+// @Produce  json
+// @Param   request  body  chdir_models.Request  true  "Change Directory Request"
+// @Success 200 {object} v1.EmptyResponse
+// @Router /api/v1/filesystem/chdir [post]
 func Handler(ctx context.Context, req chdir_models.Request) (*v1.EmptyResponse, error) {
 	absPath, err := filepath.Abs(req.Path)
 	if err != nil {

@@ -9,6 +9,14 @@ import (
 	"context"
 )
 
+// Handler creates a new directory
+// @Summary Create directory
+// @Description Creates a new directory at the specified path
+// @Accept  json
+// @Produce  json
+// @Param   request  body  mkdir_models.Request  true  "Create Directory Request"
+// @Success 200 {object} v1.EmptyResponse
+// @Router /api/v1/filesystem/mkdir [post]
 func Handler(ctx context.Context, req mkdir_models.Request) (*v1.EmptyResponse, error) {
 	stat, err := os.Stat(req.Path)
 	if err == nil {

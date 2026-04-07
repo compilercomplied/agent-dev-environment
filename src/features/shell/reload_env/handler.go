@@ -12,6 +12,14 @@ import (
 	"context"
 )
 
+// Handler reloads environment variables
+// @Summary Reload environment
+// @Description Loads environment variables from a .env file into the current process
+// @Accept  json
+// @Produce  json
+// @Param   request  body  reload_models.Request  true  "Reload Env Request"
+// @Success 200 {object} v1.EmptyResponse
+// @Router /api/v1/shell/reload_env [post]
 func Handler(ctx context.Context, req reload_models.Request) (*v1.EmptyResponse, error) {
 	// Load the specified env file into the current process
 	if err := loadDotEnv(req.Path); err != nil {
