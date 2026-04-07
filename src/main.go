@@ -24,6 +24,7 @@ import (
 // @title Agent Dev Environment API
 // @version 1.0
 // @description This is a language-agnostic filesystem and shell API.
+// @contact.url https://github.com/gdariodev/agent-dev-environment
 // @host localhost:8080
 // @BasePath /
 func main() {

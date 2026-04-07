@@ -78,6 +78,11 @@ jobs:
         with:
           generator: python
           openapi-file: swagger.json
+          # The `--additional-properties` is potentially wrong. Too many
+          # repeated parameters, but I do not have time to narrow down the
+          # specifics. The issue is evident if you check pypi page for the
+          # project, since part of the data is malformed (i.e. the repository
+          # link).
           command-args: >
             --package-name gdariodev_${{ steps.sanitize.outputs.repo_name_underscore }}
             -o ${{ matrix.output_dir }}
