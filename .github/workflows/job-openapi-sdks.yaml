@@ -66,7 +66,7 @@ jobs:
 
       - name: Save New Spec Hash
         if: steps.check-change.outputs.changed == 'true' && success()
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: .last_spec_hash
           key: spec-hash-${{ steps.spec-hash.outputs.hash }}
