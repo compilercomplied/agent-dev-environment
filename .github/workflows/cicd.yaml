@@ -51,7 +51,7 @@ jobs:
     uses: ./.github/workflows/job-openapi-sdks.yaml
     with:
       docker_target: "openapi-spec"
-      publish_to_pypi: ${{ needs.pre-setup.outputs.is_commit_on_trunk == 'true' }}
+      publish_to_pypi: true
       version_suffix: ${{ needs.pre-setup.outputs.is_pr == 'true' && format('b{0}', needs.pre-setup.outputs.pr_number) || '' }}
 
   # 4. DEPLOY: Launch deployment

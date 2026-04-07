@@ -72,7 +72,7 @@ jobs:
         uses: ./.github/workflows/openapi-sdks/actions/python
         with:
           package_name: ${{ matrix.pkg_prefix }}-${{ github.event.repository.name }}
-          package_version: 1.0.${{ github.run_number }}${{ inputs.version_suffix }}
+          package_version: 0.0.${{ github.run_number }}${{ inputs.version_suffix }}
           publish_to_pypi: ${{ inputs.publish_to_pypi }}
 
       # --- Save Hash on Success (Trunk only) ---
