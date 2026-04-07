@@ -10,6 +10,14 @@ import (
 	"context"
 )
 
+// Handler reads a file with pagination
+// @Summary Read file
+// @Description Reads a file from the filesystem with offset and limit pagination
+// @Accept  json
+// @Produce  json
+// @Param   request  body  read_models.Request  true  "Read Request"
+// @Success 200 {object} read_models.Response
+// @Router /api/v1/filesystem/read [post]
 func Handler(ctx context.Context, req read_models.Request) (*read_models.Response, error) {
 	file, err := os.Open(req.Path)
 	if err != nil {

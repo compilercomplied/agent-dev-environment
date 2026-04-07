@@ -10,6 +10,14 @@ import (
 	"context"
 )
 
+// Handler deletes a file or directory
+// @Summary Delete file/directory
+// @Description Deletes the specified file or directory
+// @Accept  json
+// @Produce  json
+// @Param   request  body  delete_models.Request  true  "Delete Request"
+// @Success 200 {object} v1.EmptyResponse
+// @Router /api/v1/filesystem/delete [post]
 func Handler(ctx context.Context, req delete_models.Request) (*v1.EmptyResponse, error) {
 	stat, err := os.Stat(req.Path)
 	if err != nil {

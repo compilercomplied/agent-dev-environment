@@ -9,6 +9,14 @@ import (
 	"os/exec"
 )
 
+// Handler runs a shell command
+// @Summary Run command
+// @Description Executes a shell command and returns the output
+// @Accept  json
+// @Produce  json
+// @Param   request  body  run.Request  true  "Run Command Request"
+// @Success 200 {object} v1.CommandResponse
+// @Router /api/v1/shell/run [post]
 func Handler(ctx context.Context, req run.Request) (*v1.CommandResponse, error) {
 	cmd := exec.CommandContext(ctx, req.Command, req.Args...)
 	var stdout, stderr bytes.Buffer

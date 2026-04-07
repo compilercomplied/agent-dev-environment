@@ -10,6 +10,14 @@ import (
 	"os/exec"
 )
 
+// Handler searches for patterns in files
+// @Summary Search files
+// @Description Searches for a regex pattern in the filesystem using ripgrep
+// @Accept  json
+// @Produce  json
+// @Param   request  body  search.Request  true  "Search Request"
+// @Success 200 {object} v1.CommandResponse
+// @Router /api/v1/filesystem/search [post]
 func Handler(ctx context.Context, req search.Request) (*v1.CommandResponse, error) {
 	// First verify the path exists
 	_, err := os.Stat(req.Path)

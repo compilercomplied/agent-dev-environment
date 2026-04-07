@@ -9,6 +9,14 @@ import (
 	"context"
 )
 
+// Handler replaces text in a file
+// @Summary Replace text
+// @Description Replaces occurrences of a string in a file with a new string using fuzzy matching
+// @Accept  json
+// @Produce  json
+// @Param   request  body  replace_models.Request  true  "Replace Request"
+// @Success 200 {object} replace_models.Response
+// @Router /api/v1/filesystem/replace [post]
 func Handler(ctx context.Context, req replace_models.Request) (*replace_models.Response, error) {
 	content, err := os.ReadFile(req.Path)
 	if err != nil {

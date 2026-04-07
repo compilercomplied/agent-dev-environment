@@ -5,92 +5,60 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  workflow_dispatch:
 
 jobs:
+  # 1. PRE-SETUP: Define semantic conditions
+  pre-setup:
+    runs-on: ubuntu-latest
+    outputs:
+      is_commit_on_trunk: ${{ steps.check.outputs.is_trunk }}
+      is_pr: ${{ steps.check.outputs.is_pr }}
+      pr_number: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Check Environment
+        id: check
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/master" ]]; then
+            echo "is_trunk=true" >> "$GITHUB_OUTPUT"
+            echo "is_pr=false" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "is_trunk=false" >> "$GITHUB_OUTPUT"
+            echo "is_pr=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_trunk=false" >> "$GITHUB_OUTPUT"
+            echo "is_pr=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Pipeline started
+        shell: bash
+        run: |
+          echo "Event: ${{ github.event_name }} | Trunk: ${{ steps.check.outputs.is_trunk }} | PR: ${{ steps.check.outputs.is_pr }}"
+
+  # 2. QA: Run E2E tests
   qa:
-    name: Quality Assurance
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    needs: pre-setup
+    uses: ./.github/workflows/job-qa.yaml
+    secrets: inherit
 
-      - name: Install Pulumi CLI
-        uses: pulumi/actions@v4
-        env:
-          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Application Image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: Dockerfile
-          push: false
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:test
-
-      - name: Run E2E Tests
-        env:
-          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-          PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE }}
-        run: |
-          ./scripts/run-e2e-in-docker.sh
-
-  deploy:
-    name: Build & Deploy
-    needs: qa
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
+  # 3. OPENAPI-SDKS: Generate OpenAPI and SDKs
+  openapi-sdks:
+    needs: [pre-setup, qa]
+    if: needs.pre-setup.outputs.is_commit_on_trunk == 'true' || needs.pre-setup.outputs.is_pr == 'true'
     permissions:
+      id-token: write
       contents: read
-      packages: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    uses: ./.github/workflows/job-openapi-sdks.yaml
+    with:
+      docker_target: "openapi-spec"
+      publish_to_pypi: true
+      version_suffix: ${{ needs.pre-setup.outputs.is_pr == 'true' && format('b{0}', needs.pre-setup.outputs.pr_number) || '' }}
+    secrets:
+      pypi_token: ${{ secrets.PYPI_API_TOKEN }}
 
-      - name: Log in to the Container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=sha
-            type=ref,event=branch
-            latest
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-      - name: Install Pulumi CLI
-        uses: pulumi/actions@v4
-        env:
-          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-
-      - name: Deploy with Pulumi
-        env:
-          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-          PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE }}
-          KUBECONFIG_CONTENT: ${{ secrets.KUBECONFIG }}
-        run: |
-          mkdir -p ~/.kube
-          echo "$KUBECONFIG_CONTENT" > ~/.kube/config
-          cd iac
-          npm ci
-          pulumi up --yes --stack prod
+  # 4. DEPLOY: Launch deployment
+  deploy:
+    needs: [pre-setup, openapi-sdks]
+    if: needs.pre-setup.outputs.is_commit_on_trunk == 'true'
+    uses: ./.github/workflows/job-deploy.yaml
+    secrets: inherit
