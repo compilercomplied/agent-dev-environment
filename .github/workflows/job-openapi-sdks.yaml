@@ -25,11 +25,46 @@ jobs:
       - name: Export Spec from Docker
         run: docker build --target ${{ inputs.docker_target }} --output type=local,dest=. .
 
+      - name: Calculate Spec Hash
+        id: spec-hash
+        run: |
+          HASH=$(sha256sum swagger.json | cut -d ' ' -f 1)
+          echo "hash=$HASH" >> $GITHUB_OUTPUT
+          echo "Current spec hash: $HASH"
+
+      - name: Restore Last Successful Spec Hash
+        id: cache-hash
+        uses: actions/cache/restore@v4
+        with:
+          path: .last_spec_hash
+          key: spec-hash-${{ steps.spec-hash.outputs.hash }}
+
+      - name: Check if Spec Changed
+        id: check-change
+        run: |
+          if [ -f .last_spec_hash ]; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "API Spec has not changed. Skipping SDK generation."
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "API Spec changed. Proceeding with SDK generation."
+            echo "${{ steps.spec-hash.outputs.hash }}" > .last_spec_hash
+          fi
+
       # --- Modular Language Dispatch ---
       
       - name: Process Python SDK
-        if: matrix.lang == 'python'
+        if: steps.check-change.outputs.changed == 'true' && matrix.lang == 'python'
         uses: ./.github/workflows/openapi-sdks/actions/python
         with:
           package_name: ${{ matrix.pkg_prefix }}-${{ github.event.repository.name }}
           package_version: 1.0.${{ github.run_number }}
+
+      # --- Save Hash on Success ---
+
+      - name: Save New Spec Hash
+        if: steps.check-change.outputs.changed == 'true' && success()
+        uses: actions/cache/save@v4
+        with:
+          path: .last_spec_hash
+          key: spec-hash-${{ steps.spec-hash.outputs.hash }}
