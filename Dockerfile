@@ -21,8 +21,7 @@ RUN go build -o agent-dev-environment ./src
 
 # --- 3. OPENAPI SPEC (Export Target) ---
 FROM builder AS spec-gen
-RUN go install github.com/swaggo/swag/cmd/swag@latest && \
-    swag init -g src/main.go -o ./docs --parseDependency --parseInternal
+RUN go run github.com/swaggo/swag/cmd/swag@latest init -g src/main.go -o ./docs --parseDependency --parseInternal
 
 FROM scratch AS openapi-spec
 COPY --from=spec-gen /app/docs/swagger.json /swagger.json
