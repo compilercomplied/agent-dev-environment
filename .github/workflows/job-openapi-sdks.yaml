@@ -13,13 +13,21 @@ on:
         required: false
         type: string
         default: ""
+    secrets:
+      pypi_token:
+        required: false
 
 jobs:
-  # 1. ORCHESTRATOR: Decide what needs to be built
-  prepare:
+  generate:
     runs-on: ubuntu-latest
-    outputs:
-      should_build_python: ${{ steps.check-change.outputs.changed }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - lang: python
+            pkg_prefix: "gdariodev"
+            output_dir: "./gen/python"
+            dist_dir: "./gen/python/dist/"
     steps:
       - uses: actions/checkout@v6
       - uses: docker/setup-buildx-action@v4
@@ -55,23 +63,50 @@ jobs:
             echo "${{ steps.spec-hash.outputs.hash }}" > .last_spec_hash
           fi
 
-      - name: Save New Spec Hash (Trunk only)
+      # --- Python Build & Publish ---
+      
+      - name: Generate Python SDK
+        if: steps.check-change.outputs.changed == 'true' && matrix.lang == 'python'
+        uses: openapi-generators/openapitools-generator-action@v1
+        with:
+          generator: python
+          openapi-file: swagger.json
+          command-args: >
+            --package-name ${{ matrix.pkg_prefix }}-${{ github.event.repository.name }}
+            -o ${{ matrix.output_dir }}
+            --additional-properties=packageName=${{ matrix.pkg_prefix }}-${{ github.event.repository.name }},packageVersion=0.0.${{ github.run_number }}${{ inputs.version_suffix }}
+
+      - name: Install Build Tools (Python)
+        if: steps.check-change.outputs.changed == 'true' && matrix.lang == 'python'
+        shell: bash
+        run: pip install build
+
+      - name: Build Package (Python)
+        if: steps.check-change.outputs.changed == 'true' && matrix.lang == 'python'
+        shell: bash
+        run: |
+          cd ${{ matrix.output_dir }}
+          python -m build
+
+      - name: Publish to PyPI (Python / API Token)
+        if: steps.check-change.outputs.changed == 'true' && matrix.lang == 'python' && inputs.publish_to_pypi == true
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ${{ matrix.dist_dir }}
+          password: ${{ secrets.pypi_token }}
+
+      - name: Upload Python SDK Artifact
+        if: steps.check-change.outputs.changed == 'true' && matrix.lang == 'python'
+        uses: actions/upload-artifact@v7
+        with:
+          name: sdk-python-0.0.${{ github.run_number }}${{ inputs.version_suffix }}
+          path: ${{ matrix.output_dir }}
+
+      # --- Save Hash on Success (Trunk only) ---
+
+      - name: Save New Spec Hash
         if: github.event_name == 'push' && github.ref == 'refs/heads/master' && steps.check-change.outputs.changed == 'true' && success()
         uses: actions/cache/save@v5
         with:
           path: .last_spec_hash
           key: spec-hash-${{ steps.spec-hash.outputs.hash }}
-
-  # 2. SPECIALIST: Python
-  python-sdk:
-    needs: prepare
-    if: needs.prepare.outputs.should_build_python == 'true'
-    permissions:
-      id-token: write
-      contents: read
-    uses: ./.github/workflows/job-sdk-python.yaml
-    with:
-      package_name: "gdariodev-${{ github.event.repository.name }}"
-      package_version: "0.0.${{ github.run_number }}${{ inputs.version_suffix }}"
-      publish_to_pypi: ${{ inputs.publish_to_pypi }}
-      docker_target: ${{ inputs.docker_target }}
