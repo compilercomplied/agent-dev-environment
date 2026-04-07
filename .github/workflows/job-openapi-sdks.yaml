@@ -63,6 +63,13 @@ jobs:
             echo "${{ steps.spec-hash.outputs.hash }}" > .last_spec_hash
           fi
 
+      - name: Sanitize Repo Name
+        id: sanitize
+        shell: bash
+        run: |
+          CLEAN_NAME=$(echo "${{ github.event.repository.name }}" | tr '-' '_')
+          echo "repo_name_underscore=$CLEAN_NAME" >> "$GITHUB_OUTPUT"
+
       # --- Python Build & Publish ---
       
       - name: Generate Python SDK
@@ -72,9 +79,9 @@ jobs:
           generator: python
           openapi-file: swagger.json
           command-args: >
-            --package-name gdariodev_${{ github.event.repository.name }}
+            --package-name gdariodev_${{ steps.sanitize.outputs.repo_name_underscore }}
             -o ${{ matrix.output_dir }}
-            --additional-properties=packageName=gdariodev_${{ github.event.repository.name }},projectName=gdariodev-${{ github.event.repository.name }},packageVersion=0.0.${{ github.run_number }}${{ inputs.version_suffix }},gitUserId=${{ github.repository_owner }},gitRepoId=${{ github.event.repository.name }},git_user_id=${{ github.repository_owner }},git_repo_id=${{ github.event.repository.name }},packageUrl=https://github.com/${{ github.repository }},projectUrl=https://github.com/${{ github.repository }},httpUserAccount=${{ github.repository_owner }},httpProjectId=${{ github.event.repository.name }}
+            --additional-properties=packageName=gdariodev_${{ steps.sanitize.outputs.repo_name_underscore }},projectName=gdariodev-${{ github.event.repository.name }},packageVersion=0.0.${{ github.run_number }}${{ inputs.version_suffix }},gitUserId=${{ github.repository_owner }},gitRepoId=${{ github.event.repository.name }},git_user_id=${{ github.repository_owner }},git_repo_id=${{ github.event.repository.name }},packageUrl=https://github.com/${{ github.repository }},projectUrl=https://github.com/${{ github.repository }},httpUserAccount=${{ github.repository_owner }},httpProjectId=${{ github.event.repository.name }}
 
       - name: Install Build Tools (Python)
         if: steps.check-change.outputs.changed == 'true' && matrix.lang == 'python'
