@@ -39,6 +39,9 @@ jobs:
   openapi-sdks:
     needs: [pre-setup, qa]
     if: needs.pre-setup.outputs.is_commit_on_trunk == 'true'
+    permissions:
+      id-token: write
+      contents: read
     uses: ./.github/workflows/job-openapi-sdks.yaml
     with:
       docker_target: "openapi-spec"
