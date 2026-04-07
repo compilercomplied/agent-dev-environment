@@ -74,7 +74,7 @@ jobs:
           command-args: >
             --package-name ${{ matrix.pkg_prefix }}-${{ github.event.repository.name }}
             -o ${{ matrix.output_dir }}
-            --additional-properties=packageName=${{ matrix.pkg_prefix }}-${{ github.event.repository.name }},packageVersion=0.0.${{ github.run_number }}${{ inputs.version_suffix }}
+            --additional-properties=packageName=${{ matrix.pkg_prefix }}-${{ github.event.repository.name }},packageVersion=0.0.${{ github.run_number }}${{ inputs.version_suffix }},httpUserAccount=${{ github.repository_owner }},httpProjectId=${{ github.event.repository.name }}
 
       - name: Install Build Tools (Python)
         if: steps.check-change.outputs.changed == 'true' && matrix.lang == 'python'
