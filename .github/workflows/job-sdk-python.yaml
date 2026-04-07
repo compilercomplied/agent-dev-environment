@@ -1,0 +1,62 @@
+name: Job - SDK Python
+on:
+  workflow_call:
+    inputs:
+      package_name:
+        required: true
+        type: string
+      package_version:
+        required: true
+        type: string
+      publish_to_pypi:
+        required: false
+        type: boolean
+        default: false
+      docker_target:
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-buildx-action@v4
+      
+      - name: Export Spec from Docker
+        run: docker build --target ${{ inputs.docker_target }} --output type=local,dest=. .
+
+      - name: Generate Python SDK
+        uses: openapi-generators/openapitools-generator-action@v1
+        with:
+          generator: python
+          openapi-file: swagger.json
+          command-args: >
+            --package-name ${{ inputs.package_name }}
+            -o ./gen/python
+            --additional-properties=packageName=${{ inputs.package_name }},packageVersion=${{ inputs.package_version }}
+
+      - name: Install Build Tools (Python)
+        shell: bash
+        run: pip install build
+
+      - name: Build Package (Python)
+        shell: bash
+        run: |
+          cd ./gen/python
+          python -m build
+
+      - name: Publish to PyPI (Python / OIDC)
+        if: inputs.publish_to_pypi == true
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ./gen/python/dist/
+
+      - name: Upload Python SDK Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: sdk-python-${{ inputs.package_version }}
+          path: ./gen/python
