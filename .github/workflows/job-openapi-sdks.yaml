@@ -18,8 +18,6 @@ jobs:
         include:
           - lang: python
             pkg_prefix: "gdariodev"
-            output_dir: "./gen/python"
-            dist_dir: "./gen/python/dist/"
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -29,9 +27,10 @@ jobs:
 
       - name: Calculate Spec Hash
         id: spec-hash
+        shell: bash
         run: |
           HASH=$(sha256sum swagger.json | cut -d ' ' -f 1)
-          echo "hash=$HASH" >> $GITHUB_OUTPUT
+          echo "hash=$HASH" >> "$GITHUB_OUTPUT"
           echo "Current spec hash: $HASH"
 
       - name: Restore Last Successful Spec Hash
@@ -43,55 +42,25 @@ jobs:
 
       - name: Check if Spec Changed
         id: check-change
+        shell: bash
         run: |
           if [ -f .last_spec_hash ]; then
-            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "API Spec has not changed. Skipping SDK generation."
           else
-            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "changed=true" >> "$GITHUB_OUTPUT"
             echo "API Spec changed. Proceeding with SDK generation."
             echo "${{ steps.spec-hash.outputs.hash }}" > .last_spec_hash
           fi
 
-      # --- Python Build (Matrix-aware) ---
+      # --- Modular Language Dispatch ---
       
-      - name: Generate Python SDK
+      - name: Process Python SDK
         if: steps.check-change.outputs.changed == 'true' && matrix.lang == 'python'
-        uses: openapi-generators/openapitools-generator-action@v1
+        uses: ./.github/workflows/openapi-sdks/actions/python
         with:
-          generator: python
-          openapi-file: swagger.json
-          command-args: >
-            --package-name ${{ matrix.pkg_prefix }}-${{ github.event.repository.name }}
-            -o ${{ matrix.output_dir }}
-            --additional-properties=packageName=${{ matrix.pkg_prefix }}-${{ github.event.repository.name }},packageVersion=1.0.${{ github.run_number }}
-
-      - name: Install Build Tools (Python)
-        if: steps.check-change.outputs.changed == 'true' && matrix.lang == 'python'
-        shell: bash
-        run: pip install build
-
-      - name: Build Package (Python)
-        if: steps.check-change.outputs.changed == 'true' && matrix.lang == 'python'
-        shell: bash
-        run: |
-          cd ${{ matrix.output_dir }}
-          python -m build
-
-      - name: Publish to PyPI (Python / OIDC)
-        if: steps.check-change.outputs.changed == 'true' && matrix.lang == 'python'
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: ${{ matrix.dist_dir }}
-
-      # --- Artifact Upload ---
-
-      - name: Upload SDK Artifact
-        if: steps.check-change.outputs.changed == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: sdk-${{ matrix.lang }}
-          path: ${{ matrix.output_dir }}
+          package_name: ${{ matrix.pkg_prefix }}-${{ github.event.repository.name }}
+          package_version: 1.0.${{ github.run_number }}
 
       # --- Save Hash on Success ---
 

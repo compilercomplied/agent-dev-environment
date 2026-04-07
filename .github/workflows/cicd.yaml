@@ -16,14 +16,18 @@ jobs:
     steps:
       - name: Check if on trunk
         id: check-trunk
+        shell: bash
         run: |
           if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/master" ]]; then
-            echo "is_trunk=true" >> $GITHUB_OUTPUT
+            echo "is_trunk=true" >> "$GITHUB_OUTPUT"
           else
-            echo "is_trunk=false" >> $GITHUB_OUTPUT
+            echo "is_trunk=false" >> "$GITHUB_OUTPUT"
           fi
       - name: Pipeline started
-        run: echo "Initializing pipeline for ${{ github.ref }} via ${{ github.event_name }} (Is trunk: ${{ steps.check-trunk.outputs.is_trunk }})"
+        shell: bash
+        run: |
+          echo "Initializing pipeline for ${{ github.ref }} via ${{ github.event_name }}"
+          echo "Is trunk: ${{ steps.check-trunk.outputs.is_trunk }}"
 
   # 2. QA: Run E2E tests
   qa:
