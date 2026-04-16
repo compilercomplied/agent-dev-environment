@@ -1,6 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
-import { getAppConfig } from "./libraries/configuration";
+import { getAppConfig } from "./configuration";
 
 const APP_ID = "agent-dev-environment";
 const agentsNamespace = "agents";
@@ -15,11 +15,6 @@ const configMap = new k8s.core.v1.ConfigMap("agent-dev-env-config", {
   },
   data: {
     ...appConfig.plainConfig,
-    templates: JSON.stringify({
-      [APP_ID]: {
-        env_vars: appConfig.envVars,
-      }
-    }),
   },
 });
 
@@ -28,5 +23,12 @@ const secret = new k8s.core.v1.Secret("agent-dev-env-secret", {
     name: `${APP_ID}-secret`,
     namespace: agentsNamespace,
   },
-  stringData: appConfig.secrets,
+  stringData: {
+    ...appConfig.secrets,
+    templates: pulumi.jsonStringify({
+      [APP_ID]: {
+        env_vars: appConfig.envVars,
+      }
+    }),
+  },
 });
