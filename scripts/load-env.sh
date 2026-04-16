@@ -36,18 +36,22 @@ pulumi stack select --create local -C iac
 echo "Loading local configuration from Pulumi..."
 
 # Extract configuration from Pulumi and export it
-# Handles both simple values and secret objects
+# Handles the new nested env_vars structure and legacy top-level keys
 set -o pipefail
 if ! pulumi config --stack local -C iac --show-secrets --json | \
 jq -r --arg q "'" '
     to_entries | .[] | 
-    (.key | split(":") | last) + "=" + $q + 
-    (
-        if .value | type == "object" 
-        then .value.value 
-        else .value 
-        end | tostring
-    ) + $q
+    if .key | endswith(":env_vars") then
+        (.value.objectValue // (.value.value | fromjson)) | to_entries | .[] | .key + "=" + $q + (.value.default | tostring) + $q
+    else
+        (.key | split(":") | last) + "=" + $q + 
+        (
+            if .value | type == "object" 
+            then .value.value 
+            else .value 
+            end | tostring
+        ) + $q
+    end
 ' > .env; then
     echo "Error: Failed to extract configuration from Pulumi."
     return 1
