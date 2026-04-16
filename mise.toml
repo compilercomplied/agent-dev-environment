@@ -8,6 +8,15 @@ pulumi = "latest"
 description = "Build the application"
 run = "go build -o bin/agent-dev-environment ./src"
 
+[tasks.setup-project]
+description = "Setup the project from scratch (Go modules and Pulumi)"
+run = """
+go mod download
+cd iac
+npm install
+pulumi stack select local
+"""
+
 [tasks.run]
 description = "Run the application"
 run = "go run src/main.go"
