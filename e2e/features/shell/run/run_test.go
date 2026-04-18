@@ -3,6 +3,7 @@ package run
 import (
 	. "agent-dev-environment/e2e"
 	run_models "agent-dev-environment/src/api/v1/shell/run"
+	"os"
 	"strings"
 	"testing"
 )
@@ -30,9 +31,13 @@ func TestRunShell_AllowedCommand_Success(t *testing.T) {
 func TestRunShell_CurlLocalhost_Success(t *testing.T) {
 	// ------------------------------------ Arrange ------------------------------------
 	client := NewClient()
+	port := os.Getenv("AGENT_DEV_ENVIRONMENT_PORT")
+	if port == "" {
+		port = "8080"
+	}
 	req := run_models.Request{
 		Command: "curl",
-		Args:    []string{"-s", "http://localhost:8080/health"},
+		Args:    []string{"-s", "http://localhost:" + port + "/health"},
 	}
 
 	// -------------------------------------- Act --------------------------------------

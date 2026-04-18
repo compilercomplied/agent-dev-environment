@@ -7,7 +7,8 @@ cd "$(dirname "$0")/.."
 source "$(dirname "$0")/load-env.sh"
 
 APP_ID="agent-dev-environment"
-export E2E_SERVER_URL="http://localhost:8080"
+PORT=${AGENT_DEV_ENVIRONMENT_PORT:-8080}
+export E2E_SERVER_URL="http://localhost:$PORT"
 TEST_DIR="/tmp/agent-dev-environment-e2e-tests"
 
 cleanup() {
@@ -33,7 +34,7 @@ API_PID=$!
 # 3. Wait for the API to be ready (Loop until connection succeeds)
 echo "Waiting for API to be ready..."
 for i in {1..30}; do
-  if curl -s http://localhost:8080/health > /dev/null; then
+  if curl -s http://localhost:$PORT/health > /dev/null; then
     echo "API is up!"
     break
   fi
@@ -43,5 +44,5 @@ done
 # 4. Run the blackbox tests
 # Pass the API URL so tests know where to hit
 echo "Running E2E tests..."
-export API_URL="http://localhost:8080"
+export API_URL="http://localhost:$PORT"
 go test ./e2e/... -v -count=1 2>&1 | sed -u "s/^/[e2e-tests] /"

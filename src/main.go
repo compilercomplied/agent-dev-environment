@@ -49,7 +49,7 @@ func main() {
 	// Chain middlewares: Timeout -> PanicRecovery -> mux
 	handler := middleware.Timeout(10 * time.Minute)(middleware.PanicRecovery(mux))
 
-	port := "8080"
+	port := config.GetValue("PORT")
 	logger.Printf("Starting server on port %s...", port)
 	if err := http.ListenAndServe(":"+port, handler); err != nil {
 		logger.Fatalf("Server failed: %v", err)
