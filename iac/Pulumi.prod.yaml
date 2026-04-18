@@ -4,6 +4,9 @@ config:
     AGENT_DEV_ENVIRONMENT_LOGGING_TYPE:
       default: structured
       description: "Format of the logs ('structured' or 'plain'). Plain is useful for local human-readable logs. Use structured for deployments."
+    AGENT_DEV_ENVIRONMENT_PORT:
+      default: "8080"
+      description: "The port the application will listen on."
     PULUMI_CONFIG_PASSPHRASE:
       default:
         secure: v1:+4LicSK2FBbnXvcS:HI9si7GLYVLe8jNOimtfQqfFsKXChDk08/sj2aHDA5Mb5f4gWltsXO05iMj7RhyD6hmhIss7l5aYzOeBWIDh16sPVA==

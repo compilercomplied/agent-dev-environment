@@ -91,3 +91,4 @@ The application is configured via environment variables prefixed with `AGENT_DEV
 | Variable | Required | Values | Description |
 |----------|----------|--------|-------------|
 | `AGENT_DEV_ENVIRONMENT_LOGGING_TYPE` | Yes | `plain`, `structured` | Log output format |
+| `AGENT_DEV_ENVIRONMENT_PORT` | Yes (default in Pulumi) | `8080`, etc. | Port the app listens on |
