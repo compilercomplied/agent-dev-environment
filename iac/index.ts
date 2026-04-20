@@ -25,10 +25,5 @@ const secret = new k8s.core.v1.Secret("agent-dev-env-secret", {
   },
   stringData: {
     ...appConfig.secrets,
-    templates: pulumi.jsonStringify({
-      [APP_ID]: {
-        env_vars: appConfig.envVars,
-      }
-    }),
   },
 });

@@ -1,38 +1,32 @@
 import * as pulumi from "@pulumi/pulumi";
 
-export interface EnvVarDefinition {
-  default: any;
-  description: string;
-}
-
 export interface AppConfig {
-  secrets: { [key: string]: pulumi.Output<string> };
-  plainConfig: { [key: string]: string };
-  envVars: Record<string, any>;
+  secrets: Record<string, pulumi.Input<string>>;
+  plainConfig: Record<string, string>;
 }
 
 export function getAppConfig(config: pulumi.Config): AppConfig {
-  const envVars = config.requireObject<Record<string, EnvVarDefinition>>("env_vars");
-  const secrets: Record<string, pulumi.Output<string>> = {};
+  const allCfg = pulumi.runtime.allConfig();
+  // PULUMI_CONFIG_SECRET_KEYS is set by the Pulumi CLI (and Automation API via setAllConfig)
+  // and lists the fully-qualified keys (project:key) that contain secret values.
+  const secretKeySet = new Set<string>(
+    JSON.parse(process.env["PULUMI_CONFIG_SECRET_KEYS"] ?? "[]")
+  );
+
+  const secrets: Record<string, pulumi.Input<string>> = {};
   const plainConfig: Record<string, string> = {};
-  const processedEnvVars: Record<string, any> = {};
+  const prefix = `${config.name}:`;
 
-  const allConfig = pulumi.runtime.allConfig();
-  const raw = JSON.parse(allConfig[`${config.name}:env_vars`]);
+  for (const [key, value] of Object.entries(allCfg)) {
+    if (!key.startsWith(prefix)) continue;
 
-  for (const key of Object.keys(envVars)) {
-    if (raw[key]?.default?.secure) {
-      const secretValue = config.requireSecretObject<any>("env_vars").apply(ev => String(ev[key].default));
-      secrets[key] = secretValue;
-      processedEnvVars[key] = {
-        ...envVars[key],
-        default: secretValue,
-      };
+    const varName = key.slice(prefix.length);
+    if (secretKeySet.has(key)) {
+      secrets[varName] = pulumi.secret(value);
     } else {
-      plainConfig[key] = String(envVars[key].default);
-      processedEnvVars[key] = envVars[key];
+      plainConfig[varName] = value;
     }
   }
 
-  return { secrets, plainConfig, envVars: processedEnvVars };
+  return { secrets, plainConfig };
 }
