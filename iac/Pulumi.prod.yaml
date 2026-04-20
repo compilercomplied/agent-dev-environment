@@ -1,17 +1,8 @@
 encryptionsalt: v1:sZCL6oMbKCQ=:v1:ymwexuRg0+J7Ayca:FuyjIbMyh7MX0B64pgZqPlWVJQHpiQ==
 config:
-  agent-dev-environment:env_vars:
-    AGENT_DEV_ENVIRONMENT_LOGGING_TYPE:
-      default: structured
-      description: "Format of the logs ('structured' or 'plain'). Plain is useful for local human-readable logs. Use structured for deployments."
-    AGENT_DEV_ENVIRONMENT_PORT:
-      default: "8080"
-      description: "The port the application will listen on."
-    PULUMI_CONFIG_PASSPHRASE:
-      default:
-        secure: v1:+4LicSK2FBbnXvcS:HI9si7GLYVLe8jNOimtfQqfFsKXChDk08/sj2aHDA5Mb5f4gWltsXO05iMj7RhyD6hmhIss7l5aYzOeBWIDh16sPVA==
-      description: "Agent uses this to load secrets in the pulumi local secret stack (if available)."
-    GITHUB_TOKEN:
-      default:
-        secure: v1:etD64beWyjztt1w8:Sb1iBXdypOclHjpCOdN1/QvvhkCRRAsgUIHDC54Qr5VSHRSvGEcslxjLozVngSN4v7zBzzxTrrQ=
-      description: "Agent uses this to clone/push/pull in github"
+  AGENT_DEV_ENVIRONMENT_LOGGING_TYPE: structured
+  AGENT_DEV_ENVIRONMENT_PORT: "8080"
+  PULUMI_CONFIG_PASSPHRASE:
+    secure: v1:+4LicSK2FBbnXvcS:HI9si7GLYVLe8jNOimtfQqfFsKXChDk08/sj2aHDA5Mb5f4gWltsXO05iMj7RhyD6hmhIss7l5aYzOeBWIDh16sPVA==
+  GITHUB_TOKEN:
+    secure: v1:etD64beWyjztt1w8:Sb1iBXdypOclHjpCOdN1/QvvhkCRRAsgUIHDC54Qr5VSHRSvGEcslxjLozVngSN4v7zBzzxTrrQ=
