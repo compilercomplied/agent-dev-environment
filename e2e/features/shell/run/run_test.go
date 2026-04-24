@@ -72,22 +72,22 @@ func TestRunShell_CurlExternal_Restricted(t *testing.T) {
 	}
 }
 
-func TestRunShell_UnauthorizedCommand_Restricted(t *testing.T) {
+func TestRunShell_NonWhitelistedCommand_Success(t *testing.T) {
 	// ------------------------------------ Arrange ------------------------------------
 	client := NewClient()
 	req := run_models.Request{
-		Command: "apt-get",
-		Args:    []string{"install", "vim"},
+		Command: "id",
+		Args:    []string{"-u"},
 	}
 
 	// -------------------------------------- Act --------------------------------------
-	_, err := client.RunShell(req)
+	resp, err := client.RunShell(req)
 
 	// ------------------------------------ Assert -------------------------------------
-	if err == nil {
-		t.Fatal("Expected error for unauthorized command, got none")
+	if err != nil {
+		t.Fatalf("Expected no error for 'id' command, got %v", err)
 	}
-	if !strings.Contains(err.Error(), "command 'apt-get' is not allowed") {
-		t.Errorf("Expected 'not allowed' error message, got: %v", err)
+	if resp.CommandOutput == "" {
+		t.Error("Expected command output for 'id', got empty string")
 	}
 }
