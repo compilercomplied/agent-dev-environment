@@ -1,94 +1,35 @@
 # Agent Dev Environment
 
-The "hands" of a coding agent. This service provides a sandboxed Ubuntu environment with a Go HTTP API that gives an AI agent the ability to interact with a filesystem and development tools. The agent's "brains" (the `agent-hub` component) connects to this environment to read, write, search, and manage files — as well as run commands like `git`, build tools, and linters — all abstracted through [mise](https://mise.jdx.dev/).
+This project contains a sandboxed environment. Currently implemented through a fat docker image using ubuntu and a few utilities, and the go code that serves an http api.
 
-## Architecture
+The http api can then be consumed by orchestration workflows to enable fully autonomous and git-aware coding workflows.
 
-```
-┌──────────────┐         HTTP          ┌─────────────────────────────────┐
-│   agent-hub  │ ───────────────────▶  │   agent-dev-environment (pod)   │
-│              │                       │                                 │
-└──────────────┘                       │  ┌───────────────────────────┐  │
-                                       │  │  Go HTTP API (:8080)      │  │
-                                       │  │  • filesystem operations  │  │
-                                       │  │  • command execution      │  │
-                                       │  └───────────────────────────┘  │
-                                       │                                 │
-                                       │  Ubuntu 24.04 image with:      │
-                                       │  • git, curl, wget             │
-                                       │  • build-essential             │
-                                       │  • mise (task runner)          │
-                                       │  • Go 1.25                     │
-                                       └─────────────────────────────────┘
-```
+The environment expects to have all configuration available in the cloned repos (i.e. secrets are encrypted and can be decrypted by pulumi config passphrase).
 
-The container ships as a fat Ubuntu-based image that includes the compiled Go API server alongside a full development toolchain. When the pod starts, the API server launches on port 8080 and the `agent-hub` begins orchestrating work against it.
+# Rutime view
 
-## Restricted Shell Execution
+This is deployed through pulumi and github workflows. The main non-obvious bits are:
+ - Headless service deployment. This is done so the agent orchestration can spin up multiple pods of this fat docker image and still access it through the network.
+ - Secrets. There are a few important secrets, you can check these in the pulumi templates. Github token is used to interact with github repositories and pulumi config passphrase so the agent can decrypt secrets in these repositories.
 
-The service provides a `POST /api/v1/shell/run` endpoint to execute a controlled set of commands. 
-
-**Allowed Commands:** `ls`, `rg`, `git`, `curl`.
-
-**Security Restrictions:**
-- `curl` is restricted to `localhost` targets only (e.g., `http://localhost:8080/health`).
-- Only whitelisted commands can be executed.
-- All other commands are rejected with a `400 Bad Request`.
-
+# Development
 ## Mise
 
 [mise](https://mise.jdx.dev/) is used to manage tool versions and abstract common tasks. It is installed in the Docker image and available at runtime.
 
-## Development
-
-### Prerequisites
+## Prerequisites
 
 - [mise](https://mise.jdx.dev/) installed.
 
-### Run locally
+## Running locally
 
+On your first run:
 ```bash
-# Install tools via mise
+# Install tools
 mise install
 
-# Run E2E
-mise run test:e2e
+# Configure project
+mise setup-project
 ```
 
-## Deployment
-
-### Docker Image
-
-The production image is a multi-stage build (`Dockerfile`) based on Ubuntu 24.04. The builder stage compiles the Go binary, and the runner stage packages it alongside the full development toolchain (git, build-essential, mise, Go). The image is pushed to **GitHub Container Registry** (`ghcr.io`).
-
-### CI/CD
-
-A single GitHub Actions workflow (`.github/workflows/cicd.yaml`) handles everything:
-
-1. **On every push and PR to `master`:** builds the Docker image and runs the e2e test suite.
-2. **On push to `master` only:** builds and pushes the image to `ghcr.io`, then deploys to Kubernetes via Pulumi.
-
-### Infrastructure
-
-Infrastructure is managed with [Pulumi](https://www.pulumi.com/) (TypeScript) in the `iac/` directory. It provisions:
-
-- A **Kubernetes ConfigMap** (`agent-dev-env-config`) for plain configuration values
-- A **Kubernetes Secret** (`agent-dev-env-secret`) for sensitive configuration values
-
-Configuration keys prefixed with `AGENT_DEV_ENVIRONMENT_` are automatically discovered from the Pulumi stack config and routed to the appropriate resource.
-
-**Stack configurations:**
-
-| Stack | Logging | File |
-|-------|---------|------|
-| `local` | `plain` | `iac/Pulumi.local.yaml` |
-| `prod` | `structured` | `iac/Pulumi.prod.yaml` |
-
-## Configuration
-
-The application is configured via environment variables prefixed with `AGENT_DEV_ENVIRONMENT_`:
-
-| Variable | Required | Values | Description |
-|----------|----------|--------|-------------|
-| `AGENT_DEV_ENVIRONMENT_LOGGING_TYPE` | Yes | `plain`, `structured` | Log output format |
-| `AGENT_DEV_ENVIRONMENT_PORT` | Yes (default in Pulumi) | `8080`, etc. | Port the app listens on |
+The project is aimed to be run through e2e tests. So you can use either e2e command in the mise.toml (running the e2e with or without docker).
