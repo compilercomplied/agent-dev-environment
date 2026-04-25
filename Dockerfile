@@ -28,14 +28,22 @@ COPY --from=spec-gen /app/docs/swagger.json /swagger.json
 
 # --- 4. RUNNER (Production Env) ---
 FROM base AS runner
-WORKDIR /app
-COPY docker-scripts/install-mise.sh /tmp/install-mise.sh
-RUN chmod +x /tmp/install-mise.sh && /tmp/install-mise.sh && rm /tmp/install-mise.sh
-ENV PATH="/root/.local/share/mise/bin:/root/.local/share/mise/shims:$PATH"
 
-COPY --from=builder /app/agent-dev-environment .
-COPY docker-scripts/entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+# Create a non-root user
+RUN useradd -m -s /bin/bash agent
+USER agent
+WORKDIR /home/agent/app
+
+# Install mise as the non-root user
+COPY --chown=agent:agent docker-scripts/install-mise.sh /tmp/install-mise.sh
+RUN chmod +x /tmp/install-mise.sh && /tmp/install-mise.sh && rm /tmp/install-mise.sh
+
+# Update PATH for the agent user
+ENV PATH="/home/agent/.local/share/mise/bin:/home/agent/.local/share/mise/shims:$PATH"
+
+COPY --chown=agent:agent --from=builder /app/agent-dev-environment .
+COPY --chown=agent:agent docker-scripts/entrypoint.sh /home/agent/app/entrypoint.sh
+RUN chmod +x /home/agent/app/entrypoint.sh
 
 EXPOSE 8080
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["/home/agent/app/entrypoint.sh"]
